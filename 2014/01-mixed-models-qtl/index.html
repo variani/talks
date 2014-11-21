@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Linear Mixed Models in QTL analysis</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Linear Mixed Models in QTL analysis">
+  <meta name="author" content="Andrey Ziyatdinov">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery-1.7.min.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Linear Mixed Models in QTL analysis</h1>
+    <h2>Variance Components</h2>
+    <p>Andrey Ziyatdinov<br/>Unit of Genetics of Complex Diseases (UGCD), Sant Pau, Barcelona @ 5 Mar 2014</p>
+  </hgroup>
+  <article></article>  
+  <footer class = 'license'>
+    <a href='http://creativecommons.org/licenses/by-nc-sa/3.0/'>
+    <img width = '80px' src = 'http://mirrors.creativecommons.org/presskit/buttons/88x31/png/by-nc-sa.png'>
+    </a>
+  </footer>
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>About this presentation</h2>
+  </hgroup>
+  <article data-timings="">
+    <div class="build"><p>
+In UGCD we are working on
+</p></div>
+
+<ul class = "build incremental">
+<li>Family-based sample (GAIT1 and GAIT2 projects)</li>
+<li>Targeted to search for Quantitative Trait Loci (QTLs)</li>
+<li>Heavily <s>abused</s> used  <code>SOLAR</code> tool</li>
+</ul>
+
+<div class="build"><p>
+Objective of this presentation is to talk more about linear mixed models
+</p></div>
+
+<ul class = "build incremental">
+<li>write down some maths </li>
+<li>look at other examples rather than those polygenic ones</li>
+<li>discuss the issues related to QTL analysis </li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-2" style="background:;">
+  <hgroup>
+    <h2>About this presentation</h2>
+  </hgroup>
+  <article data-timings="">
+    <div class="build"><p>
+Expected profit
+</p></div>
+
+<ul class = "build incremental">
+<li>be sure we use <code>SOLAR</code> in a proper way</li>
+<li>be able to run its standard and, perhaps, advanced features </li>
+<li>and ... estimate the cost to go away from <code>SOLAR</code> one day <s>some contradiction has been detected here</s></li>
+</ul>
+
+<div class="build"><p>
+The way to make use of this presentation
+</p></div>
+
+<ul class = "build incremental">
+<li>Be aware of &#39;maths overload&#39;</li>
+<li>Focus on examples</li>
+<li>Come back to the maths someday</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Agenda</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li>General linear models</li>
+<li>Mixed linear models
+
+<ul>
+<li>Examples</li>
+</ul></li>
+<li>Models in <code>SOLAR</code><br></li>
+<li>Discussion</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>Timeline</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul class = "build incremental">
+<li>Sir Ronald Fisher introduced random effect model to study the trait correlations between relatives in 1918.</li>
+<li>Charles Roy Henderson derived best linear unbiased estimates (BLUE) for fixed effects 
+and best linear unbiased predictions (BLUP) for random effects in the 1950s.</li>
+</ul>
+
+<div class="build"><p>
+It took some time to overcome the computation demands and make practical tools.
+</p></div>
+
+<ul class = "build incremental">
+<li>SOLAR: Sequential Oligogenic Linkage Analysis Routines (Blangero and Almasy, 1996).</li>
+<li>A commercial program <a href="http://www.vsni.es/software/asreml">ASReml</a> 
+by Gilmour and his colleges in 1999.</li>
+<li>R package <code>nlme</code> since 1999 and <a href="https://github.com/lme4/lme4/">lme4</a> since 2002 by Douglas Bates and his colleges.</li>
+<li>R package <a href="http://cran.r-project.org/web/packages/MCMCglmm/index.html">MCMCglmm</a>:
+MCMC Generalised Linear Mixed Models (Hadfield, 2010).</li>
+</ul>
+
+<p>Sources: <a href="http://en.wikipedia.org/wiki/Mixed_model">Wikipedia</a>, <a href="https://github.com/lme4/BIRS">github.com/lme4/BIRS</a></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>Quick <s>and dirty</s> start from SOLAR</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>A model in which \(n\) QTLs and polygenes influence a quantitative trait (Almasy and Blangero, 1998):</p>
+
+<p>\[y_j = \mu + x_j \beta  + g_j + \sum_{i = 1}^{n}{q_{ij}} + e_j\]</p>
+
+<ul>
+<li>\(y_j\): quantitative trait of the j-th individual</li>
+<li>\(\mu\): the grand trait mean</li>
+<li>\(x_j\): vector of covariates of the j-th individual</li>
+<li>\(g_i\): additive polygenic effect of the j-th individual</li>
+<li>\(q_{ij}\): the i-th QTL effect of the j-th individual</li>
+<li>\(e_j\): random environmental deviation of the j-th individual</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue quote" id="slide-6" style="background:indigo;">
+  <hgroup>
+    <h2>General Linear Models</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-7" style="background:;">
+  <hgroup>
+    <h2>General Linear Model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[y = X \beta + e\]</p>
+
+<p>with</p>
+
+<p>\[e \sim (0, \sigma_e^2 R)\]</p>
+
+<ul>
+<li>\(y\): vector of \(n\) observations</li>
+<li>\(X\): the design or incidence \(n \times p\) matrix</li>
+<li>\(e\): vector of a residual error with covariance matrix \(\sigma_e^2 R\),
+
+<ul>
+<li>off-diagonal elements of \(R\) indicate the lack of independence,
+while the diagonal elements indicate the heteroscedasticity</li>
+</ul></li>
+</ul>
+
+<div class="build"><p>
+Note that
+</p></div>
+
+<ul class = "build incremental">
+<li>\(y\) and \(X\) are observed data, while \(\beta\) is a vector of parameters</li>
+<li>\(E(y) = X \beta\)</li>
+<li>\(Var(y) = Var(e) = \sigma_e^2 R\)</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-8" style="background:;">
+  <hgroup>
+    <h2>Ordinary Least Squares (OLS)</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The assumption is that the residual errors \(e\) are uncorrelated and have equal variances (homoscedasticity).</p>
+
+<ul>
+<li>\(\sigma^2(e_i) = \sigma_e^2\)</li>
+<li>\(\sigma(e_i, e_j) = 0\) for \(i \neq j\)</li>
+</ul>
+
+<p>In a matrix form it has the form \(e \sim (0, \sigma_e^2 I)\).</p>
+
+<p>The OLS estimate of \(\beta\) is a vector \(b\) that minimizes the residual sum of squares </p>
+
+<p>\[\sum_{i = 1}^{n}{\hat{e}_i^2} = \hat{e}^T\hat{e} = (y - Xb)^T (y - Xb) \mbox{ } \rightarrow b = (X^TX)^{-1}X^T\]</p>
+
+<div class="build"><p>
+Note that
+</p></div>
+
+<ul class = "build incremental">
+<li>If \(e \sim MVN(0, \sigma_e^2 I)\), then the OLS estimate is also the maximum-likelihood estimate.</li>
+<li>If \(X^TX\) is singular, \(b\) still hold when a generalized inverse is used.</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-9" style="background:;">
+  <hgroup>
+    <h2>Gauss–Markov theorem</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The OLS estimator is the best linear unbiased estimator (BLUE) of the coefficients \(\beta\)
+for linear models in which the errors are uncorrelated and have equal variances.</p>
+
+<ul class = "build incremental">
+<li>best: it minimizes the sampling variance</li>
+<li>linear: it is a linear function  of the observed data \(y\)</li>
+<li>unbiased: \(E(\hat{\beta}_{BLUE})) = \beta\)</li>
+</ul>
+
+<div class="build"><p>
+Note that the errors don't need to be normal, independent nor identically distributed
+</p></div>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-10" style="background:;">
+  <hgroup>
+    <h2>Gauss–Markov theorem</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The theorem was extended by Aitken to the general linear model in the case 
+the errors have non-scalar covariance matrix. </p>
+
+<p>The BLUE in this case is</p>
+
+<p>\[ \hat{\beta} = (X^TR^{-1}X)^{-1}X^TR^{-1}y \]</p>
+
+<p>Derivation is hacked by multiplying both sides of the model equation by \(R^{1/2}\).
+See (Lynch and Walsh, 1998), Appendix 3, pp. 842.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-11" style="background:;">
+  <hgroup>
+    <h2>Summary on General Linear Models</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul class = "build incremental">
+<li>Modeling a quantitative trait assumes working in terms of both <b>mean</b> and <b>variance</b>.</li>
+<li>The best linear unbiased estimator (BLUE) provides estimation of the model parameters (coefficients \(\beta\)).</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue quote" id="slide-12" style="background:DarkViolet;">
+  <hgroup>
+    <h2>Linear Mixed Models</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-13" style="background:;">
+  <hgroup>
+    <h2>Mixed Model (in Genetics)</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[ y = X\beta + Zu + e\]</p>
+
+<ul class = "build incremental">
+<li>Consider a vector \(y\) of the phenotype measured in \(n\) individuals.</li>
+<li>We assume that these observations are described adequately by a linear model with
+
+<ul>
+<li>\(p \times 1\) vector of fixed effects (\(\beta\)) </li>
+<li>and \(q \times 1\) vector of random effects (\(u\)).</li>
+</ul></li>
+<li>The first element of the vector \(\beta\) is typically the population mean.</li>
+<li>Other elements of the vector \(\beta\) may be gender, location, year of birth, experimental treatment, etc.</li>
+<li>The elements of the vector \(u\) are usually genetic effects such as additive genetic values.</li>
+</ul>
+
+<p>See (Lynch and Walsh, 1998), Chapter 26, pp. 746.
+Example 1 on page 746 is a <i>must</i> (this comes in a few slides).</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-14" style="background:;">
+  <hgroup>
+    <h2>Mixed Model (matrix form)</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[ y = X\beta + Zu + e\]</p>
+
+<ul>
+<li>\(X\): \(n \times p\) incidence or design matrix</li>
+<li>\(Z\): \(n \times q\) incidence matrix</li>
+<li>\(e\): \(n \times 1\) vector of residual deviations</li>
+</ul>
+
+<div class="build"><p>
+Note that
+</p></div>
+
+<ul class = "build incremental">
+<li>\(e\) assumed to be distributed independently of the random genetic effects (thus, we can sum up variances).</li>
+<li>Usually, all elements of \(Z\) matrix are either <code>0</code> or <code>1</code>.</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-15" style="background:;">
+  <hgroup>
+    <h2>Example 1</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Suppose that three sires are chosen at random from a population,
+and each mated to a randomly chosen dam.
+Two offspring from each mating are evaluated, some in environment 1 and some in environment 2.
+The models assumes no sire \(\times\) environment interaction.</p>
+
+<p>Let \(y_{ijk}\) denote the phenotypic value of the $k$th offspring of sire i in environment j.
+The model is then</p>
+
+<p>\[ y_{ijk} = \beta_j + u_i + e_{ijk} \]</p>
+
+<p>The model has three random effects, which measure the contribution from each sire.</p>
+
+<p>\[u = \left\lgroup
+  \matrix{u_1 \cr u_2 \cr u_3}
+\right\rgroup
+\]</p>
+
+<p>The model also has two fixed effect, which describe the influence of the two environments.</p>
+
+<p>\[u = \left\lgroup
+  \matrix{\beta_1 \cr \beta_2}
+\right\rgroup
+\]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-16" style="background:;">
+  <hgroup>
+    <h2>Example 1 with simulated data</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[ y = X\beta + Zu + e\]</p>
+
+<p>\[y = \left\lgroup
+  \matrix{y_{1,1,1} \cr y_{1,2,1} \cr y_{2,1,1} \cr y_{2,1,2} \cr y_{3,1,1} \cr y_{3,2,1}} 
+\right\rgroup
+  =
+\left\lgroup  
+  \matrix{9 \cr 12 \cr 11 \cr 6 \cr 7 \cr 14}  
+\right\rgroup  
+\]</p>
+
+<p>\[X = \left\lgroup
+  \matrix{1 & 0 \cr 0 & 1 \cr 1 & 0  \cr 1 & 0 \cr 1 & 0 \cr 0 & 1} 
+\right\rgroup
+\mbox{, }
+Z = \left\lgroup
+  \matrix{1 & 0 & 0 \cr 1 & 0 & 0 \cr 0 & 1 & 0 \cr 0 & 1 & 0 \cr 0 & 0 & 1 \cr 0 & 0 & 1} 
+\right\rgroup
+\]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-17" style="background:;">
+  <hgroup>
+    <h2>Mixed Model vs. General Linear model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>General linear model</p>
+
+<p>\[ y = X\beta + e^* \mbox{ where } \mbox{ } \mbox{ } e^* \sim (0, V) \mbox{ implying } \mbox{ } \mbox{ } y \sim (X\beta, V)\]</p>
+
+<p>Mixed model partitions the residual effect into two components, with \(e^* = Zu + e\), giving</p>
+
+<p>\[ y = X\beta + Zu + e \mbox{ where } \mbox{ } \mbox{ } u \sim (0, G) \mbox{ and } \mbox{ } \mbox{ } e \sim (0, R)\] </p>
+
+<p>\[ \mbox{ implying } \mbox{ } \mbox{ } y \sim (X\beta, V) = (X\beta, ZGZ^T + R)\]</p>
+
+<div class="build"><p>
+Note that
+</p></div>
+
+<ul class = "build incremental">
+<li>Both formulations yield the same estimate of the fixed effects \(\beta\), when analyzed in the appropriate way.</li>
+<li>The mixed-model formulation further allows estimates of the random effects \(u\).</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-18" style="background:;">
+  <hgroup>
+    <h2>BLUE and BLUP</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>BLUE of \(\beta\) is just the generalized least-squares estimator</p>
+
+<p>\[ \hat{\beta} = (X^TV^{-1}X)^{-1}X^TV^{-1}y \]</p>
+
+<p>Henderson showed that the BLUP of \(u\) is</p>
+
+<p>\[ \hat{u} = (GZ^TV^{-1})(y - X\hat{\beta}) \]</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-19" style="background:;">
+  <hgroup>
+    <h2>Summary on Mixed Models</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul class = "build incremental">
+<li>\(y\), \(X\), \(Z\) are observed</li>
+<li>\(\beta\), \(u\), \(R\), \(G\) are unknown</li>
+<li>The covariance matrices \(R\) and \(G\) typically are functions of a few unknown parameters (\(\sigma\)-parameters)</li>
+<li>Analysis involves two complementary tasks:
+
+<ol>
+<li>estimation of the covariance matrices \(G\) and \(R\)</li>
+<li>estimation of the fixed and random effects, \(\beta\) and \(u\) (BLUE and BLUP)</li>
+</ol></li>
+</ul>
+
+<div class="build"><p>
+Maximum likelihood (ML) and Restricted Maximum likelihood (REML) are the methods for variance-component estimation.
+It could be the topic of another presentation. <s>This presentation has been already saturated with maths</s>.
+See (Lynch and Walsh, 1998), Chapter 27.
+</p></div>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-20" style="background:;">
+  <hgroup>
+    <h2>Example 1 to be finished</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>What are the BLUP values for the sire effects \((u_1, u_2, u_3)\)?</p>
+
+<div class="build"><p>
+Some assumptions are needed:
+</p></div>
+
+<ul class = "build incremental">
+<li>We assume that the residual variances within both environments are the same (\(\sigma_e^2\)),
+so \(R = \sigma_e^2 I\), where \(I\) is the \(6 \times 6\) identity matrix.</li>
+<li>We assume that all three sires are unrelated and drawn from the same population,
+\(G = \sigma_s^2I\), where \(I\) is the \(3 \times 3\) identity matrix.</li>
+</ul>
+
+<div class="build"><p>
+Imagine the the step 1 (see the previous slide) is completed,
+and we know $\sigma_e^2 = 6$ and $\sigma_s^2 = 2$.
+Thus, the covariance matrix $V$ is given by $ZGZ^T + R$.
+</p></div>
+
+<div class="build"><p>
+$$V = 2 \left\lgroup
+  \matrix{1 & 0 & 0 \cr 1 & 0 & 0 \cr 0 & 1 & 0 \cr 0 & 1 & 0 \cr 0 & 0 & 1 \cr 0 & 0 & 1} 
+\right\rgroup
+I_{3 \times 3}
+\left\lgroup
+  \matrix{1 & 1 & 0 & 0 & 0 & 0 \cr 0 & 0 & 1 & 1 & 0 & 0 \cr 0 & 0 & 0 & 0 & 1 & 1}  
+\right\rgroup
+\mbox{ + } 6 I_{6 \times 6}
+$$
+</p></div>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-21" style="background:;">
+  <hgroup>
+    <h2>Example 1 last shot</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[V = \left\lgroup
+  \matrix{8 & 2 & 0 & 0 & 0 & 0 \cr 2 & 8 & 0 & 0 & 0 & 0 \cr 0 & 0 & 8 & 2 & 0 & 0 \cr
+    0 & 0 & 2 & 8 & 0 & 0 \cr 0 & 0 & 0 & 0 & 8 & 2 \cr 0 & 0 & 0 & 0 & 2 & 8} 
+\right\rgroup
+\]</p>
+
+<div class="build"><p>
+A few simple matrix calculations are left.
+</p></div>
+
+<div class="build"><p>
+$$\hat{\beta} = 
+  \left\lgroup
+    \matrix{\hat{\beta}_1 \cr \hat{\beta}_2}  
+  \right\rgroup
+  = (X^TV^{-1}X)^{-1}X^TV^{-1}y =
+  \frac{1}{18} 
+  \left\lgroup
+    \matrix{148 \cr 235} 
+  \right\rgroup
+$$
+</p></div>
+
+<div class="build"><p>
+$$ \hat{u} = 
+ \left\lgroup
+    \matrix{\hat{u}_1 \cr \hat{u}_2 \cr \hat{u}_3}  
+  \right\rgroup
+  = (GZ^TV^{-1})(y - X\hat{\beta}) = 
+  \frac{1}{18} 
+  \left\lgroup
+    \matrix{-1 \cr 2 \cr -1} 
+  \right\rgroup
+$$
+</p></div>
+
+<div class="build"><p>
+Now try to compare the effects knowing that
+
+$$y = (9, 12, 11, 6, 7, 14) $$
+</p></div>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue quote" id="slide-22" style="background:magenta;">
+  <hgroup>
+    <h2>Examples</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-23" style="background:;">
+  <hgroup>
+    <h2>Genetics Mixed Models and others</h2>
+  </hgroup>
+  <article data-timings="">
+    <div class="build"><p>
+Mixed Model for GAIT1 sample (398 individuals in 21 families)
+</p></div>
+
+<ul class = "build incremental">
+<li><code>398</code> random effects (length of the vector \(u\))</li>
+<li><code>Z</code> incidence matrix is the identity matrix \(I_{398 \times 398}\)</li>
+<li>the random effects are distributed as \((0, A_{398 \times 398})\),
+where \(A\) is 2\(\times\) kinship matrix</li>
+</ul>
+
+<div class="build"><p>
+General-case examples are rather different from those in the genetics.
+</p></div>
+
+<ul class = "build incremental">
+<li>random effects are applied to both intercepts and slopes</li>
+<li>covariance matrix of the random effect is the identity matrix</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-24" style="background:;">
+  <hgroup>
+    <h2>Example 2: Penicillin data</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code>Description:
+
+     Six samples of penicillin were tested using the _B.  subtilis_
+     plate method on each of 24 plates.  The response is the diameter
+     (mm) of the zone of inhibition of growth of the organism.
+
+Format:
+
+     A data frame with 144 observations on the following 3 variables.
+
+     ‘diameter’ diameter (mm) of the zone of inhibition of the growth
+          of the organism.
+
+     ‘plate’ assay plate.  A factor with levels ‘a’ to ‘x’.
+
+     ‘sample’ penicillin sample.  A factor with levels ‘A’ to ‘F’.
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-25" style="background:;">
+  <hgroup>
+    <h2>Penicillin data</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="images/penicillin.png" alt=""></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-26" style="background:;">
+  <article data-timings="">
+    <pre><code class="r">library(lme4)
+data(Penicillin)
+lmer(diameter ~ (1|plate) + (1|sample), Penicillin)
+</code></pre>
+
+<pre><code> Linear mixed model fit by REML [&#39;lmerMod&#39;]
+ Formula: diameter ~ (1 | plate) + (1 | sample) 
+    Data: Penicillin 
+
+ REML criterion at convergence: 330.9 
+
+ Random effects:
+  Groups   Name        Variance Std.Dev.
+  plate    (Intercept) 0.717    0.847   
+  sample   (Intercept) 3.731    1.932   
+  Residual             0.302    0.550   
+ Number of obs: 144, groups: plate, 24; sample, 6
+
+ Fixed effects:
+             Estimate Std. Error t value
+ (Intercept)   22.972      0.809    28.4
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-27" style="background:;">
+  <hgroup>
+    <h2>Penicillin model diagnostics</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="images/penicillin-model-diagnostic.png" alt=""></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-28" style="background:;">
+  <hgroup>
+    <h2>Example 3: sleepstudy data</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code>Description:
+
+     The average reaction time per day for subjects in a sleep
+     deprivation study. On day 0 the subjects had their normal amount
+     of sleep.  Starting that night they were restricted to 3 hours of
+     sleep per night.  The observations represent the average reaction
+     time on a series of tests given each day to each subject.
+
+Format:
+
+     A data frame with 180 observations on the following 3 variables.
+
+     ‘Reaction’ Average reaction time (ms)
+
+     ‘Days’ Number of days of sleep deprivation
+
+     ‘Subject’ Subject number on which the observation was made.
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-29" style="background:;">
+  <article data-timings="">
+    <pre><code class="r">lmer(Reaction ~ Days + (Days|Subject), sleepstudy)
+</code></pre>
+
+<pre><code> Linear mixed model fit by REML [&#39;lmerMod&#39;]
+ Formula: Reaction ~ Days + (Days | Subject) 
+    Data: sleepstudy 
+
+ REML criterion at convergence: 1744 
+
+ Random effects:
+  Groups   Name        Variance Std.Dev. Corr
+  Subject  (Intercept) 612.1    24.74        
+           Days         35.1     5.92    0.07
+  Residual             654.9    25.59        
+ Number of obs: 180, groups: Subject, 18
+
+ Fixed effects:
+             Estimate Std. Error t value
+ (Intercept)   251.41       6.82    36.8
+ Days           10.47       1.55     6.8
+
+ Correlation of Fixed Effects:
+      (Intr)
+ Days -0.138
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-30" style="background:;">
+  <hgroup>
+    <h2>Random and Fixed Effects</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><font color='blue'>total</font> effect = <font color='green'>fixed</font> effect +
+  <font color='red'>random</font> effect</p>
+
+<p><img src="images/sleepstudy-model.png" alt=""></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-31" style="background:;">
+  <hgroup>
+    <h2>Comparison of Models</h2>
+  </hgroup>
+  <article data-timings="">
+    <pre><code class="r">m2 &lt;- lmer(Reaction ~ Days + (Days|Subject), sleepstudy)
+m2.uncorr &lt;- lmer(Reaction ~ Days + (1|Subject) + (0+Days|Subject), sleepstudy)
+anova(m2, m2.uncorr)
+</code></pre>
+
+<pre><code>Data: sleepstudy
+Models:
+m2.uncorr: Reaction ~ Days + (1 | Subject) + (0 + Days | Subject)
+m2: Reaction ~ Days + (Days | Subject)
+          Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(&gt;Chisq)
+m2.uncorr  5 1762.0 1778.0 -876.00   1752.0                         
+m2         6 1763.9 1783.1 -875.97   1751.9 0.0639      1     0.8004
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-32" style="background:;">
+  <hgroup>
+    <h2>Summary on Examples</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul class = "build incremental">
+<li>The definition of a random effect can be implemented either via <code>Z</code> matrix or <code>G</code> matrix.</li>
+<li>Currently, the <code>lme4</code> package allows only the <code>Z</code>-based parametrization.</li>
+<li>Rönnegård and Carlborg have shown a statistically equivalent definition of <code>G</code> matrix
+via an incidence matrix <code>Z</code> (Ronnegard and Carlborg, 2007). 
+See also <a href="http://cran.r-project.org/web/packages/hglm/index.html">hglm</a> R package.</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue quote" id="slide-33" style="background:maroon;">
+  <hgroup>
+    <h2>SOLAR Models</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-34" style="background:;">
+  <hgroup>
+    <h2>Polygenic (Univariate) Model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[ y = X\beta + g + Hc + e\]</p>
+
+<p>\[\mbox{ where } \mbox{ } \mbox{ } g \sim (0, \sigma_g^2 A) 
+  \mbox{ and } \mbox{ } \mbox{ } c \sim (0, \sigma_c^2 I)
+  \mbox{ and } \mbox{ } \mbox{ } e \sim (0, \sigma_e^2 I)\] </p>
+
+<p>\[ \mbox{ implying } \mbox{ } \mbox{ } y \sim (X\beta, V) = (X\beta, \sigma_g^2 A + \sigma_c^2 I + \sigma_e^2 I)\]</p>
+
+<p>Heritability: \(h = \frac{\sigma_g^2}{\sigma_g^2 + \sigma_c^2 + \sigma_e^2}\).</p>
+
+<p>Likelihood Ratio Test (LRT):</p>
+
+<table><thead>
+<tr>
+<th>Model</th>
+<th>Free Parameters</th>
+<th>Restricted Parameters</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>No polygenic effect</td>
+<td>\(\sigma_c^2\), \(\sigma_e^2\)</td>
+<td>\(\sigma_g^2\) = 0</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-35" style="background:;">
+  <hgroup>
+    <h2>Bivariate (correlation) Model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[\begin{pmatrix}
+  y_1 \\
+  y_2
+\end{pmatrix}_{nk \times 1} =
+\begin{pmatrix}
+  X_1 & 0 \\
+  0 & X_2
+\end{pmatrix}_{nk \times nk}
+\begin{pmatrix}
+  \beta_1 \\
+  \beta_2
+\end{pmatrix}_{nk \times 1}
++
+\begin{pmatrix}
+  g_1 \\
+  g_2
+\end{pmatrix}_{nk \times 1}
++
+\begin{pmatrix}
+  e_1 \\
+  e_2
+\end{pmatrix}_{nk \times 1}
+\]</p>
+
+<p>\[G_{nk \times nk} = C_{k \times k} \otimes A_{n \times n} =
+\begin{pmatrix}
+  c_{11} A & c_{12} A \\
+  c_{21} A & c_{21} A
+\end{pmatrix} =
+\begin{pmatrix}
+  \sigma_{1}^2 A & \rho \sigma_{1} \sigma_{2} A \\
+  \rho \sigma_{1} \sigma_{2} A & \sigma_{2}^2 A
+\end{pmatrix}_{g}
+\]</p>
+
+<p>\[R_{nk \times nk} = E_{k \times k} \otimes I_{n \times n} =
+\begin{pmatrix}
+  e_{11} I & e_{12} I \\
+  e_{21} I & e_{21} I
+\end{pmatrix} =
+\begin{pmatrix}
+  \sigma_{1}^2 I & \rho \sigma_{1} \sigma_{2} I \\
+  \rho \sigma_{1} \sigma_{2} I & \sigma_{2}^2 I
+\end{pmatrix}_{e}
+\]</p>
+
+<p>Likelihood Ratio Test (LRT):</p>
+
+<table><thead>
+<tr>
+<th>Model</th>
+<th>Free Parameters</th>
+<th>Restricted Parameters</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>No genetic correlation</td>
+<td>\((\sigma_1^2, \sigma_2^2)_g\), \((\sigma_1^2, \sigma_2^2, \rho)_e\)</td>
+<td>\(\rho_g = 0\)</td>
+</tr>
+<tr>
+<td>No pleiotropy</td>
+<td>\((\sigma_1^2, \sigma_2^2)_g\), \((\sigma_1^2, \sigma_2^2, \rho)_e\)</td>
+<td>\(\rho_g = 1\)</td>
+</tr>
+<tr>
+<td>No environmental correlation</td>
+<td>\((\sigma_1^2, \sigma_2^2, \rho)_g\), \((\sigma_1^2, \sigma_2^2)_e\)</td>
+<td>\(\rho_e = 0\)</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-36" style="background:;">
+  <hgroup>
+    <h2>Weight is a covariate for model of Height</h2>
+  </hgroup>
+  <article data-timings="">
+    <p><img src="images/table-h2-review.png" alt=""></p>
+
+<p>(Wilson, 2008)</p>
+
+<blockquote>
+<p>Comparing models 2a–c with models 1a–c shows that including weight yields lower estimates of \(V_A\), with concomitant declines in the &gt;heritability. This is because the structure of the <code>G</code> matrix used to simulate the phenotypes was such that a positive genetic &gt;correlation exists between weight and horn length. Thus, accounting for differences among individuals in the weight actually removes a &gt;portion of additive variance for the horn length. Thus, the estimates of \(V_A\) (and heritability) under models 2a–c are
+conditioned on the second trait of weight.</p>
+</blockquote>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-37" style="background:;">
+  <hgroup>
+    <h2>Linkage (Univariate) Model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[ y = X\beta + g + Hc + q + e\]</p>
+
+<p>\[\mbox{ where } \mbox{ } \mbox{ } g \sim (0, \sigma_g^2 A) 
+  \mbox{ and } \mbox{ } \mbox{ } c \sim (0, \sigma_c^2 I)
+  \mbox{ and } \mbox{ } \mbox{ } p \sim (0, \sigma_q^2 IBD)  
+  \mbox{ and } \mbox{ } \mbox{ } e \sim (0, \sigma_e^2 I)\] </p>
+
+<p>\[ \mbox{ implying } \mbox{ } \mbox{ } y \sim (X\beta, V) = (X\beta, \sigma_g^2 A + \sigma_c^2 I + \sigma_q^2 IBD + \sigma_e^2)\]</p>
+
+<p>Likelihood Ratio Test (LRT):</p>
+
+<table><thead>
+<tr>
+<th>Model</th>
+<th>Free Parameters</th>
+<th>Restricted Parameters</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>No linkage</td>
+<td>\(\sigma_g^2, \sigma_c^2\), \(\sigma_e^2\)</td>
+<td>\(\sigma_q^2\) = 0</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-38" style="background:;">
+  <hgroup>
+    <h2>Assosiation Model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>\[ y = X\beta + \beta_{SNP} * SNP + g + Hc + e\]</p>
+
+<p>\[\mbox{ where } \mbox{ } \mbox{ } g \sim (0, \sigma_g^2 A) 
+  \mbox{ and } \mbox{ } \mbox{ } c \sim (0, \sigma_c^2 I)
+  \mbox{ and } \mbox{ } \mbox{ } e \sim (0, \sigma_e^2 I)\] </p>
+
+<p>\[ \mbox{ implying } \mbox{ } \mbox{ } y \sim (X\beta, V) = (X\beta, \sigma_g^2 A + \sigma_c^2 I + \sigma_e^2 I)\]</p>
+
+<p>Likelihood Ratio Test (LRT):</p>
+
+<table><thead>
+<tr>
+<th>Model</th>
+<th>Free Parameters</th>
+<th>Restricted Parameters</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>No association</td>
+<td>\(\sigma_g^2, \sigma_c^2\), \(\sigma_e^2\)</td>
+<td>\(\beta_{SNP} = 0\)</td>
+</tr>
+</tbody></table>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-39" style="background:;">
+  <hgroup>
+    <h2>Summary on SOLAR Models</h2>
+  </hgroup>
+  <article data-timings="">
+    <div class="build"><p>
+What SOLAR topics should have also been here?
+</p></div>
+
+<ul class = "build incremental">
+<li>Bivariate Linkage Model</li>
+<li>Sex-Specific Model</li>
+<li>Parent-Of-Origin Model (available in SOLAR?)</li>
+<li>Derivation and testing the phenotypic correlation</li>
+<li>Definition of the LOD score and its correction methods</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue quote" id="slide-40" style="background:crimson;">
+  <hgroup>
+    <h2>Discussion</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-41" style="background:;">
+  <hgroup>
+    <h2>My long way of learning things</h2>
+  </hgroup>
+  <article data-timings="">
+    <ol class = "build incremental">
+<li>Manual of <code>SOLAR</code></li>
+<li>Papers of <code>SOLAR</code></li>
+<li>Tutorials on the animal model</li>
+<li><b>Book (Lynch and Walsh, 1998)</b>, Chapters 26 and 27</li>
+<li>Writing my own code <a href="https://github.com/variani/solaris">github.com/variani/solaris</a></li>
+<li>Watching project of other people and trying to contribute to <a href="https://github.com/variani/lme4">github.com/variani/lme4</a></li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-42" style="background:;">
+  <hgroup>
+    <h2>Next Candidate Topics</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul class = "build incremental">
+<li>Mixed models in application to other type of genetic data?
+Our data are family-based GAIT!</li>
+<li>Multivariate variance-based methods to fix the family effect?</li>
+<li>Review pro y contra family-based clinical studies</li>
+<li>Improve polygenic model by adding diet and/or treatment as random variable</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="segue quote" id="slide-43" style="background:indigo;">
+  <hgroup>
+    <h2>Are we ready for GAIT2?</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-44" style="background:;">
+  <hgroup>
+    <h2>Are we ready for GAIT2?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Workflow &#39;Linkage &gt; Fine-Mapping &gt; Gene Candidates&#39;</p>
+
+<ul class = "build incremental">
+<li>Linkage maps based on SNPs and further linkage analysis</li>
+<li>Use of gene expression data to confirm a gene-candidate</li>
+<li>Association with haplotypes</li>
+<li>Simultaneous linkage and association (rare variants?)</li>
+<li>Multi-loci association </li>
+<li>Association with imputed SNPS</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-45" style="background:;">
+  <hgroup>
+    <h2>Are we ready for GAIT2?</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Storage and sharing knowledge at <a href="https://github.com/ugcd">github.com/ugcd</a></p>
+
+<ul class = "build incremental">
+<li>Do some planning about methods/tools we are going to use</li>
+<li>Work hard to deliver the phenotypic information about GAIT2</li>
+<li>Invite partners to contribute (UPC, Genebra, etc) and share their ideas</li>
+<li>Store the material of publications by the group</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-46" style="background:;">
+  <hgroup>
+    <h2>References</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>[1] L. Almasy and J. Blangero. &quot;Multipoint quantitative-trait
+linkage analysis in general pedigrees.&quot;. In: <em>American journal of
+human genetics</em> 62.5 (May. 1998), pp. 1198-211. ISSN: 0002-9297.
+DOI: 10.1086/301844. <URL:
+http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1377101\&tool=pmcentrez\&rendertype=abstract>.</p>
+
+<p>[2] J. Blangero and L. Almasy. &quot;Solar: sequential oligogenic
+linkage analysis routines&quot;. In: <em>Population Genetics Laboratory
+Technical Report</em> 6 (1996).</p>
+
+<p>[3] J. D. Hadfield. &quot;MCMCglmm: MCMC Methods for Multi-Response
+GLMMs in R&quot;. In: <em>Journal of Statistical Software</em> 33.2 (2010).</p>
+
+<p>[4] M. Lynch and B. Walsh. <em>Genetics and Analysis of Quantitative
+Traits</em>. Sinauer, 1998. <URL:
+http://www.invemar.org.co/redcostera1/invemar/docs/RinconLiterario/2011/febrero/AG\_8.pdf>.</p>
+
+<p>[5] L. Ronnegard and O. Carlborg. &quot;Separation of base allele and
+sampling term effects gives new insights in variance component QTL
+analysis.&quot;. In: <em>BMC genetics</em> 8 (Jan. 2007), p. 1. ISSN:
+1471-2156. DOI: 10.1186/1471-2156-8-1. <URL:
+http://www.pubmedcentral.nih.gov/articlerender.fcgi?artid=1781068\&tool=pmcentrez\&rendertype=abstract>.</p>
+
+<p>[6] A. J. Wilson. &quot;Why h2 does not always equal V A/V P?&quot;. In:
+<em>Journal of evolutionary biology</em> 21.3 (May. 2008), pp. 647-50.
+ISSN: 1420-9101. DOI: 10.1111/j.1420-9101.2008.01500.x. <URL:
+http://www.ncbi.nlm.nih.gov/pubmed/18266683>.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-47" style="background:;">
+  <hgroup>
+    <h2>Credits</h2>
+  </hgroup>
+  <article data-timings="">
+    <ul>
+<li><a href="http://slidify.org/">slidify</a>, <a href="http://slidify.org/samples/intro/">io2012</a></li>
+<li><a href="http://yihui.name/knitr/">knitr</a> </li>
+<li><a href="http://carlboettiger.info/2012/05/30/knitcitations.html">knitcitations</a></li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="thank-you-slide segue nobackground" id="slide-48" style="background:;">
+  <hgroup>
+    <h2>Thank you</h2>
+  </hgroup>
+  <article data-timings="">
+    
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='About this presentation'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='About this presentation'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Agenda'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Timeline'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Quick <s>and dirty</s> start from SOLAR'>
+         5
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=6 title='General Linear Models'>
+         6
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=7 title='General Linear Model'>
+         7
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=8 title='Ordinary Least Squares (OLS)'>
+         8
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=9 title='Gauss–Markov theorem'>
+         9
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=10 title='Gauss–Markov theorem'>
+         10
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=11 title='Summary on General Linear Models'>
+         11
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=12 title='Linear Mixed Models'>
+         12
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=13 title='Mixed Model (in Genetics)'>
+         13
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=14 title='Mixed Model (matrix form)'>
+         14
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=15 title='Example 1'>
+         15
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=16 title='Example 1 with simulated data'>
+         16
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=17 title='Mixed Model vs. General Linear model'>
+         17
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=18 title='BLUE and BLUP'>
+         18
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=19 title='Summary on Mixed Models'>
+         19
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=20 title='Example 1 to be finished'>
+         20
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=21 title='Example 1 last shot'>
+         21
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=22 title='Examples'>
+         22
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=23 title='Genetics Mixed Models and others'>
+         23
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=24 title='Example 2: Penicillin data'>
+         24
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=25 title='Penicillin data'>
+         25
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=26 title=''>
+         26
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=27 title='Penicillin model diagnostics'>
+         27
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=28 title='Example 3: sleepstudy data'>
+         28
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=29 title=''>
+         29
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=30 title='Random and Fixed Effects'>
+         30
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=31 title='Comparison of Models'>
+         31
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=32 title='Summary on Examples'>
+         32
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=33 title='SOLAR Models'>
+         33
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=34 title='Polygenic (Univariate) Model'>
+         34
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=35 title='Bivariate (correlation) Model'>
+         35
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=36 title='Weight is a covariate for model of Height'>
+         36
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=37 title='Linkage (Univariate) Model'>
+         37
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=38 title='Assosiation Model'>
+         38
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=39 title='Summary on SOLAR Models'>
+         39
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=40 title='Discussion'>
+         40
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=41 title='My long way of learning things'>
+         41
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=42 title='Next Candidate Topics'>
+         42
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=43 title='Are we ready for GAIT2?'>
+         43
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=44 title='Are we ready for GAIT2?'>
+         44
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=45 title='Are we ready for GAIT2?'>
+         45
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=46 title='References'>
+         46
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=47 title='Credits'>
+         47
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=48 title='Thank you'>
+         48
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- MathJax: Fall back to local if CDN offline but local image fonts are not supported (saves >100MB) -->
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$','$'], ['\\(','\\)']],
+        processEscapes: true
+      }
+    });
+  </script>
+  <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  <!-- <script src="https://c328740.ssl.cf1.rackcdn.com/mathjax/2.0-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+  </script> -->
+  <script>window.MathJax || document.write('<script type="text/x-mathjax-config">MathJax.Hub.Config({"HTML-CSS":{imageFont:null}});<\/script><script src="libraries/widgets/mathjax/MathJax.js?config=TeX-AMS-MML_HTMLorMML"><\/script>')
+</script>
+<!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>
