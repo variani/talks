@@ -1,0 +1,829 @@
+<!--
+Google IO 2012 HTML5 Slide Template
+
+Authors: Eric Bidelman <ebidel@gmail.com>
+         Luke Mahé <lukem@google.com>
+
+URL: https://code.google.com/p/io-2012-slides
+-->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Google IO 2012</title>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">-->
+  <!--<meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+  <!--This one seems to work all the time, but really small on ipad-->
+  <!--<meta name="viewport" content="initial-scale=0.4">-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" media="all" href="theme/css/default.css">
+  <link rel="stylesheet" media="only screen and (max-device-width: 480px)" href="theme/css/phone.css">
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->
+  <script data-main="js/slides" src="js/require-1.0.8.min.js"></script>
+</head>
+<body style="opacity: 0">
+
+<slides class="layout-widescreen">
+
+  <slide class="title-slide segue nobackground">
+    <!-- The content of this hgroup is replaced programmatically through the slide_config.json. -->
+    <hgroup class="auto-fadein">
+      <h1 data-config-title><!-- populated from slide_config.json --></h1>
+      <h2 data-config-subtitle><!-- populated from slide_config.json --></h2>
+      <p data-config-presenter><!-- populated from slide_config.json --></p>
+    </hgroup>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>About this presentation</h2>
+    </hgroup>
+    <article>
+      <ul class="build">
+        <li>We will talk about current results computed by SalamboR
+          <ul>
+            <li>Heritabilities and correlations for GAIT2 traits</li>
+          </ul>
+        </li>
+        <li>Focus on things we <b>all</b> (mathematicians + biologists) care about
+          <ul>
+            <li>Input: data quality control and data cleaning</li>
+            <li>Analysis: transformations, covariates, polygenic model</li>            
+            <li>Output: interpretations of output values and p-values</li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>The only code snippet in this talk</h2>
+    </hgroup>
+    <article>
+      <pre class="prettyprint" data-lang="R">
+library(salamboR)
+
+load("set.RData")
+
+# solarPolygenic
+mod <- solarPolygenic(traits="FVIIIc", covlist=c("AGE", "SEX"), set = set)
+
+tab <- mod$df
+
+mod2 <- solarPolygenic(traits="logFVIIIc", covlist=c("AGE", "SEX"), set = set, sceen = TRUE)
+
+tab2 <- mod2$df
+
+# solarCorrelations
+cor <- solarCorrelations(traits = c("FVIIIc", "APCR"), set = set)
+tab3 <- cor$df
+
+# solarAssoc 
+A <- solarAssoc(traits="APCR", snps="FVLeiden", set = set)
+tab4 <- A$df
+      </pre>
+    </article>
+  </slide>
+
+<!--
+Introduction
+-->
+
+  <slide class="segue dark nobackground">
+    <aside class="gdbar"><img src="images/iib-128.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Introduction</h2>
+      <h3>SalamboR tool, GAIT2 traits, 25 publications</h3>
+    </hgroup>
+  </slide>
+  
+  <slide>
+    <hgroup>
+      <h2>SalamboR Tool</h2>
+    </hgroup>
+    <article>
+      <ul class="build">
+        <li><b>Salambo</b> is the bioinformatics platform consisting of:
+          <ul>
+            <li>MySQL db, Salambo Manager, salamboDB for data management</li>
+            <li>SalamboR for statistical analysis</li>
+            <li>Salambo Miner, Salambo Enrichment</li>
+          </ul>
+        </li>
+        <li><b>R</b> is the language for statistical computing
+          <ul>
+            <li>Interface to external tools (SOLAR, pedchek, etc)</li>
+            <li>Graphics</li>
+            <li>Reproducible reports</li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Statistical Analysis</h2>
+    </hgroup>
+    <article>
+      <ul class="build">
+        <li><a href = "http://en.wikipedia.org/wiki/Quantitative_trait_locus">Polygenic model</a>
+          <ul>
+            <li>Inheritance of a phenotypic characteristic (trait) is attributed to two or more genes</li>
+            <li>Also includes interactions with the environment (multifactorial inheritance)</li>
+            <li>Methods based on variance component analysis </li>
+            <li><code>solarPolygenic</code> function
+          </ul>
+        </li>
+        <li><a href = "http://en.wikipedia.org/wiki/Family_based_QTL_mapping">Family-based study</a>
+          <ul>
+            <li>Extended pedigree families</li>
+            <li>Favorable for linkage based analysis</li>
+            <li><code>drawgeneSet</code> function</li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Volume of code in SalamboR</h2>
+      <h3>lines of codes</h3>
+    </hgroup>
+    <article class="vcenter">
+      <img src="images/code-lines-1.png">
+      <footer class="source">data source: svn log from http://neurochem.sisbio.recerca.upc.edu/papers/santpau/R/SalamboR/ </footer>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Volume of code in SalamboR</h2>
+      <h3>1 paper = 1500 words = 1500 lines of code</h3>
+    </hgroup>
+    <article class="vcenter">
+      <img src="images/code-lines-2.png">
+      <footer class="source">data source: svn log from http://neurochem.sisbio.recerca.upc.edu/papers/santpau/R/SalamboR/ </footer>
+    </article>
+  </slide>
+
+<!--
+Data Preparation
+-->
+
+  <slide class="segue dark nobackground">
+    <aside class="gdbar"><img src="images/iib-128.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Data preparation</h2>
+      <h3>GAIT2 Traits, Data Cleaning, Transformations</h3>
+    </hgroup>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>GAIT2 Traits</h2>
+    </hgroup>
+    <article class = "smaller">
+<table>
+<thead>
+<tr class="header">
+<th align="left"><strong>Group</strong></th>
+<th align="left"><strong>Traits</strong></th>
+<th align="left"><strong>No. Traits</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">D</td>
+<td align="left">AT, VT, Throm, CVI, RheArt, Psori, Asthma, AllerRhi, Hypertension, Malignancy, AIThyroid, Adermatitis</td>
+<td align="left">12</td>
+</tr>
+<tr class="even">
+<td align="left">TEG</td>
+<td align="left">CT_intem, CT_intemuk, CT_natem, CT_tiftem, CFT_intem, CFT_intemuk, CFT_natem, CFT_tiftem, alpha_intem, alpha_intemuk, alpha_natem, alpha_tiftem, MCF_t_intem, MCF_t_intemuk, MCF_t_natem, MCF_t_tiftem, MCF_intem, MCF_intemuk, MCF_natem, MCF_tiftem, TGTlagtime, TGTETP, TGTPeak, Lclisis, LclisisTM</td>
+<td align="left">25</td>
+</tr>
+<tr class="odd">
+<td align="left">PFA</td>
+<td align="left">PFAadp, PFAepin</td>
+<td align="left">2</td>
+</tr>
+<tr class="even">
+<td align="left">TE</td>
+<td align="left">COX1, COX2, mPGES1, TXAS, TxB2, PGE2ion, PGE2lps, PLA2G4A, TxB2_PTES, TxB2_PCTES, PGE2ion_LE, PGE2ion_MO, PGE2lps_LE, PGE2lps_MO</td>
+<td align="left">14</td>
+</tr>
+<tr class="odd">
+<td align="left">LC</td>
+<td align="left">e5LOX, FLAP, LTA4H, LTC4S, LTB4, LTB4ion, e5LOX_NE, FLAP_NE, LTB4ion_NE, LTB4ion_MO</td>
+<td align="left">10</td>
+</tr>
+<tr class="even">
+<td align="left">GTF</td>
+<td align="left">TMTHG, THRGEN, RTMTH, FIBc, FVIIc, FVIIIc, FIXc, FXIc, FXIIc, APCR, APTT, ATIIIf, D_Dimer, GAB2, GACA, GAFS, GAPS, MAB2, MACA, MAFS, MAPS, Pcam, PSfree, PSfunc, PSt, PT, RUSSELL, TT</td>
+<td align="left">28</td>
+</tr>
+<tr class="odd">
+<td align="left">HOMO</td>
+<td align="left">CYS_HPLC, HCY_HPLC, MET_HPLC, SAM_HPLC, SAH_HPLC, SAM_SAH</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="left">HEMO</td>
+<td align="left">PTES, PCTES, LE, NE, LI, MOt</td>
+<td align="left">6</td>
+</tr>
+</tbody>
+</table>
+    </article>
+  </slide>
+  
+
+  <slide class="segue dark quote nobackground">
+    <aside class="gdbar right bottom"><img src="images/iib-128.png"></aside>
+    <article class="flexbox vleft auto-fadein">
+      <q>
+        Cleaning data has a steep learning curve and high difficulty level period. 
+        Implementing good procedures for data munging is <span style="color:rgb(244, 74, 63)">80%</span> of the job.
+      </q>
+      <div class="author">
+        jasonpbecke
+        <br/>
+        Forum at <a href="https://news.ycombinator.com/item?id=5185884">news.ycombinator.com</a>
+      </div>
+    </article>
+  </slide>
+
+<!--
+Results
+-->
+
+  <slide class="segue dark nobackground">
+    <aside class="gdbar"><img src="images/iib-128.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Results</h2>
+      <h3>Heritabilities, Correlations</h3>
+    </hgroup>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Protocol</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Pre-compute transformations of traits</li>
+        <li>Compute univariate models with screening option</li>
+          <ul>
+            <li>List of significant covariates</li>
+            <li>Betas</li>
+            <li>Heritabilities</li>
+          </ul>
+        <li>Compute phenotypic correlations (the effect we observe)</li>
+        <li>Compute environmental and genetic correlations (the effect we derive from variance component models)</li>        
+      </ul>
+    </article>
+  </slide>
+
+<!--
+Results: Heritability
+-->
+
+  <slide>
+    <hgroup>
+      <h2>Protocol for computing univariate models</h2>
+      <h3>Output: List of covariates, Betas, Heritability</h3>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Univariate model: trait ~ covariate 1 + covariate 2 + ...</li>
+        <li>Trait is transformed (if necessary) to approach the normal distribution </li>
+        <li>Use of covariates to explain the variation attributed to the environment</li>
+        <li>Screening of covariates is applied to avoid attributing the variance not related to the covariates</li>
+      </ul>
+      <p>List of covariates:</p>
+          <ul>
+            <li>The Big Four: AGE, SEX, CONTRA, SMOKING</li>
+            <li>Additional: AINEs, antiAgreg</li>
+            <li>To be added: BMI, Physical Exercise</li>
+            <li>Other trait-specific</li>
+        </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Heritability</h2>
+      <h3>Trait VT</h3>
+    </hgroup>
+    <article>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left"><strong>N</strong></th>
+<th align="left"><strong>missings</strong></th>
+<th align="left"><strong>Nused</strong></th>
+<th align="left"><strong>h2r</strong></th>
+<th align="left"><strong>h2r.se</strong></th>
+<th align="left"><strong>h2r.P</strong></th>
+<th align="left"><strong>covlist</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">VT</td>
+<td align="left">1114</td>
+<td align="left">50</td>
+<td align="left">935</td>
+<td align="left">0.67</td>
+<td align="left">0.16</td>
+<td align="left">1.60e-06</td>
+<td align="left">AGE</td>
+</tr>
+</tbody>
+</table>
+      <br/>
+      <ul>
+        <li><b>N</b>: total number of samples</li>
+        <li><b>missings</b>: number of missing samples of trait</li>
+        <li><b>Nused</b>: number of sample used by <code>SOLAR</code> (excluded missings of both trait and covariates)</li>
+        <li><b>h2r</b>: estimated Heritability</li>
+        <li><b>h2r.se</b>: standard error of estimation</li>
+        <li><b>h2r.P</b>: p-value of the significance</li>
+        <li><b>covlist</b>: list of covariates in the final model (screened)</li>        
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Covariates</h2>
+      <h3>Trait VT</h3>
+    </hgroup>
+    <article class="smaller">
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left"><strong>AGE</strong></th>
+<th align="left"><strong>AGE.se</strong></th>
+<th align="left"><strong>AGE.P</strong></th>
+<th align="left"><strong>SEX</strong></th>
+<th align="left"><strong>SEX.se</strong></th>
+<th align="left"><strong>SEX.P</strong></th>
+<th align="left"><strong>contraception</strong></th>
+<th align="left"><strong>contraception.se</strong></th>
+<th align="left"><strong>contraception.P</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">VT</td>
+<td align="left" class="highlight">-0.02</td>
+<td align="left">0.00</td>
+<td align="left">5.15e-10</td>
+<td align="left">0.00</td>
+<td align="left">0.00</td>
+<td align="left">1.36e-01</td>
+<td align="left">0.00</td>
+<td align="left">0.00</td>
+<td align="left">1.68e-01</td>
+</tr>
+</tbody>
+</table>
+<br/>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="left"><strong>AINEs</strong></th>
+<th align="left"><strong>AINEs.se</strong></th>
+<th align="left"><strong>AINEs.P</strong></th>
+<th align="left"><strong>antiAgreg</strong></th>
+<th align="left"><strong>antiAgreg.se</strong></th>
+<th align="left"><strong>antiAgreg.P</strong></th>
+<th align="left"><strong>smoking</strong></th>
+<th align="left"><strong>smoking.se</strong></th>
+<th align="left"><strong>smoking.P</strong></th>
+<th align="left"><strong>var4cov</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">VT</td>
+<td align="left">0.00</td>
+<td align="left">0.00</td>
+<td align="left">7.85e-01</td>
+<td align="left">0.00</td>
+<td align="left">0.00</td>
+<td align="left">9.26e-01</td>
+<td align="left">0.00</td>
+<td align="left">0.00</td>
+<td align="left">8.92e-01</td>
+<td align="left"></td>
+</tr>
+</tbody>
+</table>    
+      <br/>
+      <ul>
+        <li><b>AGE</b>: estimation of coefficient beta for <code>AGE</code> covariate</li>
+        <li><b>AGE.se</b>: standard error of estimation</li>
+        <li><b>AGE.P</b>: p-value of the significance</li>
+        <li>...</li>                
+        <li><b>var4cov</b>: variance captured by model (case of continuous traits)</li>
+      </ul>
+    <p>If screening is set, all covariates except <code>AGE</code> will be removed from the final model (alpha 0.1).<p>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Relation VT ~ AGE</h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Trait VT is binary (0 or 1, Male or Female)</li>
+        <li><code>SOLAR</code> transforms binary traits (probit)</li>
+        <li>Coefficient beta is estimated between <b>transformed VT</b> and AGE</li>
+      </ul>
+      <p>Rule (for the current settings)</p>
+      <ul>
+        <li>Negative beta: the greater AGE the greater risk of VT</li>
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Risk of VT ~ AGE</h2>
+    </hgroup>
+    <article class="vcenter">
+      <img src="images/beta-1.png">
+    </article>
+  </slide>
+
+
+<!--
+Results: rhoG and rhoE
+-->
+
+  <slide>
+    <hgroup>
+      <h2>Protocol for computing genetic and environmental correlations </h2>
+    </hgroup>
+    <article>
+      <ul>
+        <li>Trait is transformed (if necessary) to approach the normal distribution </li>
+        <li>Known environmental variance: covariates defined by univariate models with screening option</li>
+        <li>Bivariate model: trait1 + trait2 ~ covariate 1 + covariate 2 + ...</li>
+        <li>Unknown environmental and genetic correlations will be computed by variance component model</li>
+      </ul>
+      <p>When calculations of the correlations failed:</p>
+          <ul>
+            <li>Signs of errors: correlation value is 1 or -1, p-value is extremely small like 1e-115</li>
+            <li>Reasons (actually unknown): missing data, low heritability of traits, numerical problems in <code>SOLAR</code></li>
+            <li>Solution (manual): One can attempt different combinations of the covariates</li>
+        </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Genetic and Environmental Correlations</h2>
+      <h3>TGT group of traits</h3>
+    </hgroup>
+    <article class="smaller">
+<table>
+<thead>
+<tr class="header">
+<th align="left"><strong>trait1</strong></th>
+<th align="left"><strong>trait2</strong></th>
+<th align="left"><strong>Nused</strong></th>
+<th align="left"><strong>N.both</strong></th>
+<th align="left"><strong>N.affected</strong></th>
+<th align="left"><strong>h2r.trait1</strong></th>
+<th align="left"><strong>h2rSE.trait1</strong></th>
+<th align="left"><strong>h2r.trait2</strong></th>
+<th align="left"><strong>h2rSE.trait2</strong></th>
+<th align="left"><strong>h2r.min</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">TGTlagtime</td>
+<td align="left">VT</td>
+<td align="left">935</td>
+<td align="left">919</td>
+<td align="left">84</td>
+<td align="left">0.63</td>
+<td align="left">0.06</td>
+<td align="left">0.69</td>
+<td align="left">0.16</td>
+<td align="left">0.63</td>
+</tr>
+<tr class="even">
+<td align="left">TGTPeak</td>
+<td align="left">VT</td>
+<td align="left">935</td>
+<td align="left">919</td>
+<td align="left">84</td>
+<td align="left">0.70</td>
+<td align="left">0.05</td>
+<td align="left">0.68</td>
+<td align="left">0.15</td>
+<td align="left">0.68</td>
+</tr>
+<tr class="odd">
+<td align="left">Lclisis</td>
+<td align="left">VT</td>
+<td align="left">935</td>
+<td align="left">920</td>
+<td align="left">84</td>
+<td align="left">0.50</td>
+<td align="left">0.01</td>
+<td align="left">0.50</td>
+<td align="left">0.02</td>
+<td align="left">0.50</td>
+</tr>
+</tbody>
+</table>
+      <br/>
+      <ul>
+        <li><b>Nused</b>: number of samples used by <code>SOLAR</code></li>
+        <li><b>N.both</b>: number of samples where both traits have data</li>
+        <li><b>N.affected</b>: number of samples where trait2 (disease) has data</li>                        
+        <li><b>h2r.trait1</b>: estimated heritability for trait1</li>
+        <li><b>h2r.trait2</b>: estimated heritability for trait2</li>
+        <li><b>h2r.min</b>: Minimum value of the heritabilities</li>                        
+      </ul>
+    </article>
+  </slide>
+
+
+  <slide>
+    <hgroup>
+      <h2>Genetic and Environmental Correlations</h2>
+      <h3>TGT group of traits</h3>
+    </hgroup>
+    <article class="smaller">
+<table>
+<thead>
+<tr class="header">
+<th align="left"><strong>trait1</strong></th>
+<th align="left"><strong>trait2</strong></th>
+<th align="left"><strong>rhoG</strong></th>
+<th align="left"><strong>rhoGse</strong></th>
+<th align="left"><strong>pvalG0</strong></th>
+<th align="left"><strong>pvalG1</strong></th>
+<th align="left"><strong>rhoE</strong></th>
+<th align="left"><strong>rhoEse</strong></th>
+<th align="left"><strong>pvalE</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">TGTlagtime</td>
+<td align="left">VT</td>
+<td align="left">0.16</td>
+<td align="left">0.16</td>
+<td align="left">3.22e-01</td>
+<td align="left" class="highlight">1.80e-06</td>
+<td align="left">0.23</td>
+<td align="left">0.30</td>
+<td align="left">4.55e-01</td>
+</tr>
+<tr class="even">
+<td align="left">TGTPeak</td>
+<td align="left">VT</td>
+<td align="left" class="highlight">0.37</td>
+<td align="left">0.14</td>
+<td align="left" class="highlight">9.11e-03</td>
+<td align="left" class="highlight">1.34e-05</td>
+<td align="left">0.32</td>
+<td align="left">0.28</td>
+<td align="left">2.40e-01</td>
+</tr>
+<tr class="odd">
+<td align="left">Lclisis</td>
+<td align="left">VT</td>
+<td align="left" class="highlight">0.53</td>
+<td align="left">0.03</td>
+<td align="left"class="highlight">3.36e-06</td>
+<td align="left">1.00e+00</td>
+<td align="left" class="highlight">0.83</td>
+<td align="left">0.04</td>
+<td align="left" class="highlight">1.74e-06</td>
+</tr>
+</tbody>
+</table>
+      <br/>
+      <ul>
+        <li><b>rhoG</b>: estimation of genetic correlation</li>
+        <li><b>rhoG.se</b>: standard error of estimation</li>
+        <li><b>pvalG0</b>: p-value of the test whether some genes are shared</li>
+        <li><b>pvalG1</b>: p-value of the test whether not all genes are shared</li>                                        
+        <li><b>rhoE</b>: estimation of envirinmental correlation</li>                        
+        <li><b>rhoE.se</b>: standard error of estimation</li>        
+        <li><b>pvalE</b>: p-value of the significance</li>        
+      </ul>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Was it hard to compute'em all?</h2>
+    </hgroup>
+    <article class="smaller">
+      <ul class="build">
+       <li>Round 0 @ 06/06/2012
+          <ul>
+            <li>Received the list of traits and diseases</li>
+          </ul>
+        </li>
+       <li>Round 1 @ 15/06/2012
+          <ul>
+            <li>First attempt to calculate correlations for a small group of traits (TG group)</li>
+          </ul>
+        </li>
+       <li>Round 2 @ 27/07/2012
+          <ul>
+            <li>Standard covariates</li>
+            <li>A lot of missing correlations and inconsistent results</li>
+          </ul>
+        </li>
+       <li>Round 3 @ 30/10/2012
+          <ul>
+            <li>No covariates</li>
+            <li>Inormal transformations of traits</li>            
+            <li>Still many missing correlations</li>
+          </ul>
+        </li>
+       <li>Round 4 @ nowdays
+          <ul>
+            <li>All correlations computed (except some few rare ones)</li>
+            <li>Defined the transformations of traits</li>
+            <li>Added new covariates: AINEs, ANTIagreg</li>
+            <li>Defined the protocol of calculations</li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Was it hard to compute'em all?</h2>
+      <h3>Statistics by groups of traits</h3>
+    </hgroup>
+    <article class="smaller">
+<table>
+<thead>
+<tr class="header">
+<th align="left"><strong>Group of Traits</strong></th>
+<th align="left"><strong># diseases</strong></th>
+<th align="left"><strong># traits</strong></th>
+<th align="left"><strong># corr.</strong></th>
+<th align="left"><strong># corr. failed</strong></th>
+<th align="left"><strong># corr. computed</strong></th>
+<th align="left"><strong># corr. computed, %</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">TEG</td>
+<td align="left">12</td>
+<td align="left">25</td>
+<td align="left">300</td>
+<td align="left">60</td>
+<td align="left">240</td>
+<td align="left">80 %</td>
+</tr>
+<tr class="even">
+<td align="left">PFA</td>
+<td align="left">12</td>
+<td align="left">2</td>
+<td align="left">24</td>
+<td align="left">5</td>
+<td align="left">19</td>
+<td align="left">79.2 %</td>
+</tr>
+<tr class="odd">
+<td align="left">TE</td>
+<td align="left">12</td>
+<td align="left">14</td>
+<td align="left">168</td>
+<td align="left">60</td>
+<td align="left">108</td>
+<td align="left">64.3 %</td>
+</tr>
+<tr class="even">
+<td align="left">LC</td>
+<td align="left">12</td>
+<td align="left">10</td>
+<td align="left">120</td>
+<td align="left">26</td>
+<td align="left">94</td>
+<td align="left">78.3 %</td>
+</tr>
+<tr class="odd">
+<td align="left">GTF</td>
+<td align="left">12</td>
+<td align="left">28</td>
+<td align="left">336</td>
+<td align="left">83</td>
+<td align="left">253</td>
+<td align="left">75.3 %</td>
+</tr>
+<tr class="even">
+<td align="left">HOMO</td>
+<td align="left">12</td>
+<td align="left">6</td>
+<td align="left">72</td>
+<td align="left">15</td>
+<td align="left">57</td>
+<td align="left">79.2 %</td>
+</tr>
+<tr class="odd">
+<td align="left">HEMO</td>
+<td align="left">12</td>
+<td align="left">6</td>
+<td align="left">72</td>
+<td align="left">12</td>
+<td align="left">60</td>
+<td align="left">83.3 %</td>
+</tr>
+</tbody>
+</table>
+    </article>
+  </slide>
+
+  <slide>
+    <hgroup>
+      <h2>Was it hard to compute'em all?</h2>
+      <h3>Statistics of failures on diseases</h3>
+    </hgroup>
+    <article>
+      <img src="images/stat-diseases.png" class="reflect">
+    </article>
+  </slide>
+
+
+  <slide class="segue dark nobackground">
+    <aside class="gdbar"><img src="images/iib-128.png"></aside>
+    <hgroup class="auto-fadein">
+      <h2>Conclusions</h2>
+    </hgroup>
+  </slide>
+    
+  <slide>
+    <hgroup>
+      <h2>The way to obtain fruitful results</h2>
+    </hgroup>
+    <article>
+      <ul class="build">
+       <li>The biologists need:
+          <ul>
+            <li>Results the mathematicians are confident about</li>
+            <li>Clear explanation of variables</li>
+            <li>Excel tables</li>
+            <li>Interpretation of the current results to build new hypotheses</li>
+            <li>Option to re-run analyses</li>
+            <li><s>Endless patience with the mathematicians</s></li>
+          </ul>
+        </li>
+       <li>The mathematicians need:
+          <ul>
+            <li>Knowledge of the biological/clinical background</li>
+            <li><s>Infinite patience with <code>SOLAR</code></s></li>
+          </ul>
+        </li>
+      </ul>
+    </article>
+  </slide>
+        
+  <slide class="thank-you-slide segue nobackground">
+    <aside class="gdbar right"><img src="images/iib-128.png"></aside>
+    <article class="flexbox vleft auto-fadein">
+      <h2>Thank You!</h2>
+      <p><code>SOLAR</code> energy is our future!</p>
+    </article>
+    <p class="auto-fadein" data-config-contact>
+      <!-- populated from slide_config.json -->
+    </p>
+  </slide>
+
+  <slide class="backdrop"></slide>
+
+</slides>
+
+<!--[if IE]>
+  <script src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js"></script>
+  <script>CFInstall.check({mode: 'overlay'});</script>
+<![endif]-->
+</body>
+</html>
