@@ -3,6 +3,7 @@ title       : Interpretation of salamboR models
 subtitle    : 
 author      : Andrey Ziyatdinov & Agnès Morera Bayó
 job         : Unit of Genetics of Complex Diseases (UGCD), Sant Pau, Barcelona @ 23 May 2014
+license     : by-nc-sa
 framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
 highlighter : highlight.js # {highlight.js, prettify, highlight}
 hitheme     : tomorrow       # solarized_light
