@@ -131,7 +131,7 @@ hist(r, breaks = 30)
 ## Polygenic model for Throm
 
 ```{r m1, echo = TRUE}
-m1 <- relmatGlmer(Throm ~ (1|ID), phen2, relmat = list(ID = dkin2), 
+m1 <- relmatGlmer(aff ~ (1|ID), phen, relmat = list(ID = dkin), 
   family = binomial)
 m1
 ```

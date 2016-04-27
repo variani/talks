@@ -257,24 +257,24 @@ m</pre>
 
 </article></slide><slide class=''><hgroup><h2>Polygenic model for Throm</h2></hgroup><article  id="polygenic-model-for-throm">
 
-<pre class = 'prettyprint lang-r'>m1 &lt;- relmatGlmer(Throm ~ (1|ID), phen2, relmat = list(ID = dkin2), 
+<pre class = 'prettyprint lang-r'>m1 &lt;- relmatGlmer(aff ~ (1|ID), phen, relmat = list(ID = dkin), 
   family = binomial)
 m1</pre>
 
 <pre >## Generalized linear mixed model fit by maximum likelihood (Laplace
 ##   Approximation) [glmerMod]
 ##  Family: binomial  ( logit )
-## Formula: Throm ~ (1 | ID)
-##    Data: phen2
+## Formula: aff ~ (1 | ID)
+##    Data: phen
 ##       AIC       BIC    logLik  deviance  df.resid 
-##  955.1614  965.1910 -475.5807  951.1614      1111 
+##  225.7134  233.6661 -110.8567  221.7134       392 
 ## Random effects:
 ##  Groups Name        Std.Dev.
-##  ID     (Intercept) 1.264   
-## Number of obs: 1113, groups:  ID, 1113
+##  ID     (Intercept) 90.51   
+## Number of obs: 394, groups:  ID, 394
 ## Fixed Effects:
 ## (Intercept)  
-##      -2.321</pre>
+##      -45.86</pre>
 
 </article></slide><slide class=''><hgroup><h2>References</h2></hgroup><article  id="references">
 

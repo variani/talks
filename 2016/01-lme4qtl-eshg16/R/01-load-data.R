@@ -13,18 +13,23 @@ phen <- mutate(phen,
   HHID = ifelse(!is.na(HHID), HHID, ID))
 
 # `mtDNA`
-load("~/git/salambo/projects/14-sex-specific/R/rdata/set.RData")
-dat <- set@sampleInfo
-dat$ID <- rownames(dat)
+f <- "~/git/salambo/projects/14-sex-specific/R/rdata/set.RData"
+if(file.exists(f)) {
+  load(f) # -> `set`
+  dat <- set@sampleInfo
+  dat$ID <- rownames(dat)
 
-phen <- merge(phen, subset(dat, select = c("mtDNA", "ID")), by = "ID")
+  phen <- merge(phen, subset(dat, select = c("mtDNA", "ID")), by = "ID")
+
+  phen <- mutate(phen,
+    tr_mtDNA = 5 * log(mtDNA + median(mtDNA, na.rm = TRUE)))
+}
 
 phen <- mutate(phen,
   AGEsc = AGEc / sd(phen$AGEc, na.rm = TRUE),
-  AGEsc = AGEsc^2)
+  AGEsc2 = AGEsc^2)
 
 phen <- mutate(phen,
-  tr_mtDNA = 5 * log(mtDNA + median(mtDNA, na.rm = TRUE)),
   tr1_FXII = log(FXII),
   tr_bmi = log(bmi))
 
@@ -48,12 +53,14 @@ phen <- mutate(phen,
     ifelse(ab0 < 0, 0, 1))),
   c46tf2 = as.factor(ifelse(is.na(c46t), NA, 
     ifelse(c46t < 0, 0, 1))))
-
+    
 # kinship
 dkin <- solarKinship2(phen)
 
 ### GAIT2
-phen2 <- gait2.phen()
+phen2 <- try(gait2.phen())
+
+if(!class(phen2) == "try-error") {
 
 phen2 <- mutate(phen2, 
   CVI3 = as.factor(ifelse(is.na(CVIlevel), NA,
@@ -82,4 +89,7 @@ phen2 <- mutate(phen2,
 
 # kinship    
 dkin2 <- solarKinship2(phen2)
+
+}
+### end of code for GAIT2
     
