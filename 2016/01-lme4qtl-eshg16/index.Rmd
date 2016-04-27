@@ -1,0 +1,146 @@
+---
+title: "lme4qtl: an efficient and flexible QTL mapper"
+subtitle: "The ESHG 2016 conference, Barcelona, Spain"
+author: Andrey Ziyatdinov
+date: May, 2016
+output: ioslides_presentation
+---
+
+
+```{r setup, echo = FALSE, message = FALSE, cache = FALSE}
+# set global chunk options
+opts_chunk$set(fig.path = 'figure/', cache.path = 'cache/', echo = FALSE, cache = TRUE, 
+  tidy = FALSE, 
+  fig.width = 9, fig.height = 4.5, dev = 'png',
+  warning = FALSE, message = FALSE)
+# upload images automatically? (identity/imgur_upload)
+opts_knit$set(upload.fun = identity)
+```
+
+```{r inc, cache = FALSE}
+library(devtools)
+load_all("~/git/hemostat/lme4qtl")
+```
+
+```{r dat}
+source("R/01-load-data.R")
+```
+
+```{r include_cite, cache = FALSE}
+#library(knitcitations)
+```
+
+```{r knitcitations, cache = FALSE}
+#cite_options(linked = TRUE)
+#cite_options(tooltip = TRUE)
+
+#bib <- read.bibtex("mendeley.bib")
+```
+
+## lme4qtl is for you if
+
+* You use mixed models for QTL mapping 
+    * Basic models (efficiency)
+    * Advanced models (flexibility)
+* You code in R
+    * If not, take a look at the formula interface
+* You are a fan of the [lme4](https://github.com/lme4/lme4) R package
+    * If not, [dmbates](https://github.com/dmbates) is watching you
+
+
+<div style="float: right; font-size: 50%;">
+![](https://avatars2.githubusercontent.com/u/371258?v=3&s=150)
+<br/>
+Source: [github.com/dmbates](https://github.com/dmbates)
+</div>
+
+# Implementation
+
+## 2-column Layout
+
+<div class="columns-2">
+  - Bullet 1
+  - Bullet 2
+  - Bullet 3
+
+  image.png
+</div>
+
+# Results | QTL mapping examples using lme4qtl
+
+## Models
+
+* Polygenic (quantitative trait)
+* Polygenic (binary trait)
+* Polygenic (counts)
+
+<br/>
+
+* Association (quantitative trait)
+* Linkage (quantitative trait)
+
+<br/>
+
+* GxE (sex-especificity)
+* GxE (ageing)
+
+## Description of the GAIT data {.smaller}
+
+|  R objects |  Description  |
+|:-----------|:--------------|
+| phen/phen2 | A data frame with phenotypes and IDs (GAIT1/GAIT2) |
+| dkin/dkin2 | The double kinship matrix with IDs in row/columns names (GAIT1/GAIT2)|
+
+## Description of the GAIT data (variables) {.smaller}
+
+|  Variable  | Type | Project | Description  |
+|:-----------|:-----|:--------|:-------------|
+| ID  | character | |The individual's ID (must be unique)|
+| HHID | character | |The individual's house-hold ID |
+| SEXf | factor | |The gender (Male/Female) |
+| AGE/AGEc/AGEsc |numeric | |The age (raw/centered/scaled) |
+| AGEc2/AGEsc2 | numeric | |The age squared (centered/scaled) |
+| APTT | numeric | GAIT1 | Activated Partial Thromboplastin Time (units, sec) |
+| Throm | factor | GAIT2 | The thrombosis disease status (control/affected) |
+
+## Polygenic model for APTT
+
+```{r aptt, echo = T}
+m <- relmatLmer(APTT ~ AGEsc + (1|ID), phen, relmat = list(ID = dkin))
+m
+```
+
+## Residuals
+
+```{r aptt_res, echo = T}
+r <- residuals(m)
+```
+
+<div class="columns-2">
+
+```{r aptt_res_1, fig.width = 4, fig.height = 4, echo = T}
+qqnorm(r); qqline(r)
+```
+
+```{r aptt_res_2, fig.width = 4, fig.height = 4, echo = T}
+hist(r, breaks = 30)
+```
+
+</div>
+
+## Polygenic model for Throm
+
+```{r m1, echo = TRUE}
+m1 <- relmatGlmer(Throm ~ (1|ID), phen2, relmat = list(ID = dkin2), 
+  family = binomial)
+m1
+```
+
+
+## References
+
+```{r, results = "asis"}
+#bibliography()
+```
+
+## Thank you

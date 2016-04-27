@@ -1,0 +1,85 @@
+### inc
+library(plyr)
+
+library(devtools)
+
+load_all("~/git/ugcd/solarius")
+load_all("~/git/ugcd/gait")
+
+### GAIT1
+phen <- gait1.phen()
+
+phen <- mutate(phen,
+  HHID = ifelse(!is.na(HHID), HHID, ID))
+
+# `mtDNA`
+load("~/git/salambo/projects/14-sex-specific/R/rdata/set.RData")
+dat <- set@sampleInfo
+dat$ID <- rownames(dat)
+
+phen <- merge(phen, subset(dat, select = c("mtDNA", "ID")), by = "ID")
+
+phen <- mutate(phen,
+  AGEsc = AGEc / sd(phen$AGEc, na.rm = TRUE),
+  AGEsc = AGEsc^2)
+
+phen <- mutate(phen,
+  tr_mtDNA = 5 * log(mtDNA + median(mtDNA, na.rm = TRUE)),
+  tr1_FXII = log(FXII),
+  tr_bmi = log(bmi))
+
+phen <- mutate(phen,
+  RID = ID)
+
+phen <- mutate(phen,
+  AGEf = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0,
+    ifelse(AGE < 64, 1,
+    ifelse(AGE < 74, 2,
+    ifelse(AGE < 84, 3, 4)))))),
+  AGEf2 = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0, 1))),
+  AGEf3 = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0,
+    ifelse(AGE < 74, 1, 2)))))
+
+phen <- mutate(phen,
+  ab0f2 = as.factor(ifelse(is.na(ab0), NA, 
+    ifelse(ab0 < 0, 0, 1))),
+  c46tf2 = as.factor(ifelse(is.na(c46t), NA, 
+    ifelse(c46t < 0, 0, 1))))
+
+# kinship
+dkin <- solarKinship2(phen)
+
+### GAIT2
+phen2 <- gait2.phen()
+
+phen2 <- mutate(phen2, 
+  CVI3 = as.factor(ifelse(is.na(CVIlevel), NA,
+    ifelse(CVIlevel %in% c(0), 0,
+    ifelse(CVIlevel %in% c(1, 2, 3), 1, 
+    ifelse(CVIlevel %in% c(4, 5), 2,
+    -1))))))
+    
+phen2 <- mutate(phen2,
+  tr_bmi = log(bmi))
+  
+phen2 <- mutate(phen2,
+  RID = ID) 
+
+phen2 <- mutate(phen2,
+  AGEf = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0,
+    ifelse(AGE < 64, 1,
+    ifelse(AGE < 74, 2,
+    ifelse(AGE < 84, 3, 4)))))),
+  AGEf2 = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0, 1))),
+  AGEf3 = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0,
+    ifelse(AGE < 74, 1, 2)))))  
+
+# kinship    
+dkin2 <- solarKinship2(phen2)
+    
