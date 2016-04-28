@@ -1,0 +1,14 @@
+/*
+https://github.com/rstudio/rmarkdown/blob/master/inst/rmd/ioslides/ioslides-13.5.1/theme/css/default.css
+*/
+
+/* 
+.red { color: #f44a3f; }
+.red2 { color: #e0543e; }
+.red3 { color: #d94d3a; }
+*/
+
+.emph {
+  color: #d94d3a;
+  font-weight: bold;
+}  

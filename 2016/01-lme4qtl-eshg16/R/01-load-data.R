@@ -26,6 +26,9 @@ if(file.exists(f)) {
 }
 
 phen <- mutate(phen,
+  SEXfnum = as.numeric(SEXf) - 1)
+
+phen <- mutate(phen,
   AGEsc = AGEc / sd(phen$AGEc, na.rm = TRUE),
   AGEsc2 = AGEsc^2)
 
@@ -76,6 +79,14 @@ phen2 <- mutate(phen2,
   RID = ID) 
 
 phen2 <- mutate(phen2,
+  SEXfnum = as.numeric(SEXf) - 1)
+
+phen2 <- mutate(phen2,
+  ABOf2 = factor(ifelse(is.na(ABO), NA, 
+    ifelse(grepl("O", ABO), "O", "Not-O")), levels = c("Not-O", "O")),
+  ABOf2num = as.numeric(ABOf2) - 1)
+
+phen2 <- mutate(phen2,
   AGEf = as.factor(ifelse(is.na(AGE), NA, 
     ifelse(AGE < 55, 0,
     ifelse(AGE < 64, 1,
@@ -86,6 +97,19 @@ phen2 <- mutate(phen2,
   AGEf3 = as.factor(ifelse(is.na(AGE), NA, 
     ifelse(AGE < 55, 0,
     ifelse(AGE < 74, 1, 2)))))  
+
+phen2 <- mutate(phen2,
+  AGEf3num0 = as.numeric(AGEf3 == 0),
+  AGEf3num1 = as.numeric(AGEf3 == 1),
+  AGEf3num2 = as.numeric(AGEf3 == 2))
+
+phen2 <- mutate(phen2,
+  AGEfnum0 = as.numeric(AGEf == 0),
+  AGEfnum1 = as.numeric(AGEf == 1),
+  AGEfnum2 = as.numeric(AGEf == 2),
+  AGEfnum3 = as.numeric(AGEf == 3),
+  AGEfnum4 = as.numeric(AGEf == 4))
+
 
 # kinship    
 dkin2 <- solarKinship2(phen2)

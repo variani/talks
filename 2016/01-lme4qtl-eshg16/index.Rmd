@@ -3,7 +3,9 @@ title: "lme4qtl: an efficient and flexible QTL mapper"
 subtitle: "The ESHG 2016 conference, Barcelona, Spain"
 author: Andrey Ziyatdinov
 date: May, 2016
-output: ioslides_presentation
+output:
+  ioslides_presentation:
+    css: styles.css
 ---
 
 
@@ -18,8 +20,19 @@ opts_knit$set(upload.fun = identity)
 ```
 
 ```{r inc, cache = FALSE}
+library(plyr)
+
 library(devtools)
 load_all("~/git/hemostat/lme4qtl")
+```
+
+```{r local_fun}
+summaryCoef <- function(x, digits = max(3, getOption("digits") - 3),
+  signif.stars = getOption("show.signif.stars")) 
+{ 
+  printCoefmat(summary(x)$coefficients, zap.ind = 3, digits = digits, 
+    signif.stars = signif.stars)
+}
 ```
 
 ```{r dat}
@@ -37,14 +50,27 @@ source("R/01-load-data.R")
 #bib <- read.bibtex("mendeley.bib")
 ```
 
-## lme4qtl is for you if
+## About this talk
 
-* You use mixed models for QTL mapping 
-    * Basic models (efficiency)
-    * Advanced models (flexibility)
-* You code in R
-    * If not, take a look at the formula interface
-* You are a fan of the [lme4](https://github.com/lme4/lme4) R package
+* It is not a talk (too long)
+* It is a R package vignette (as long as necessary)
+
+## About lme4qtl
+
+An extension of the <span class="emph">lme4</span> R package
+<span class="emph">4</span> (for) <span class="emph">QTL</span> mapping
+
+* The official repository at [github.com/variani/lme4qtl](https://github.com/variani/lme4qtl)
+* This presentation lives here [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ)
+
+## About lme4qtl user
+
+1. You use mixed models for QTL mapping 
+    * Basic models (<span class="emph">efficiency</span>)
+    * Advanced models (<span class="emph">flexibility</span>)
+2. You code in R
+    * If not, just need to learn the formula interface
+3. You are a fan of the [lme4](https://github.com/lme4/lme4) R package
     * If not, [dmbates](https://github.com/dmbates) is watching you
 
 
@@ -68,7 +94,7 @@ Source: [github.com/dmbates](https://github.com/dmbates)
 
 # Results | QTL mapping examples using lme4qtl
 
-## Models
+## Examples / Models
 
 * Polygenic (quantitative trait)
 * Polygenic (binary trait)
@@ -93,7 +119,7 @@ Source: [github.com/dmbates](https://github.com/dmbates)
 
 ## Description of the GAIT data (variables) {.smaller}
 
-|  Variable  | Type | Project | Description  |
+|  Variables in phen  | Type | Project | Description  |
 |:-----------|:-----|:--------|:-------------|
 | ID  | character | |The individual's ID (must be unique)|
 | HHID | character | |The individual's house-hold ID |
@@ -102,6 +128,24 @@ Source: [github.com/dmbates](https://github.com/dmbates)
 | AGEc2/AGEsc2 | numeric | |The age squared (centered/scaled) |
 | APTT | numeric | GAIT1 | Activated Partial Thromboplastin Time (units, sec) |
 | Throm | factor | GAIT2 | The thrombosis disease status (control/affected) |
+
+
+## Models (1/7)
+
+* <span class="emph">Polygenic (quantitative trait)</span>
+* Polygenic (binary trait)
+* Polygenic (counts)
+
+<br/>
+
+* Association (quantitative trait)
+* Linkage (quantitative trait)
+
+<br/>
+
+* GxE (sex-especificity)
+* GxE (ageing)
+
 
 ## Polygenic model for APTT
 
@@ -128,14 +172,91 @@ hist(r, breaks = 30)
 
 </div>
 
+## Models (2/7)
+
+* Polygenic (quantitative trait)
+* <span class="emph">Polygenic (binary trait)</span>
+* Polygenic (counts)
+
+<br/>
+
+* Association (quantitative trait)
+* Linkage (quantitative trait)
+
+<br/>
+
+* GxE (sex-especificity)
+* GxE (ageing)
+
+
 ## Polygenic model for Throm
 
 ```{r m1, echo = TRUE}
-m1 <- relmatGlmer(aff ~ (1|ID), phen, relmat = list(ID = dkin), 
+m <- relmatGlmer(Throm ~ (1|ID), phen2, relmat = list(ID = dkin2), 
   family = binomial)
-m1
+m
 ```
 
+## Covariates
+
+```{r throm_cov, echo = TRUE}
+
+m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf2 + (1|ID), phen2, 
+  relmat = list(ID = dkin2), family = binomial)
+summaryCoef(m)
+```
+
+## Testing covariates
+
+```{r throm_cov_test, echo = TRUE}
+dat <- subset(phen2, punctured == 1)
+
+m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf2 + (1|ID), dat, 
+  relmat = list(ID = dkin2), family = binomial)
+m0 <- relmatGlmer(Throm ~ (1|ID), dat, 
+  relmat = list(ID = dkin2), family = binomial)
+```
+
+```{r, echo = TRUE}
+anova(m, m0)
+```
+
+## Disease prevalence 2%
+
+```{r throm_prevalence, echo = TRUE}
+K <- 0.02
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+m0 <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf2 + (1|ID), dat, 
+  relmat = list(ID = dkin2), family = binomial) 
+```
+
+```{r, echo = TRUE}
+anova(m, m0)   
+```
+
+## Disease prevalence 2%, coefficients
+
+```{r, echo = TRUE}
+summaryCoef(m) # offset = log(K/(1 - K)) = -3.89182
+summaryCoef(m0) 
+```
+
+## Probit link function
+
+```{r probit, echo = TRUE}
+K <- 0.01
+dat <- mutate(phen2, offset = -qnorm(1 - K))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial(probit))  
+```
+
+```{r, echo = TRUE}
+summaryCoef(m) # offset = -qnorm(1 - K) = -2.326348
+```
 
 ## References
 
@@ -144,3 +265,36 @@ m1
 ```
 
 ## Thank you
+
+# Caveats
+
+## Caveats
+
+* Disease prevalence 1%
+
+## Disease prevalence 1%
+
+```{r throm_prevalence2, echo = TRUE}
+K <- 0.01
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+
+m1 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial) 
+```
+
+```{r, echo = TRUE}
+summaryCoef(m1) # offset = log(K/(1 - K)) = -4.59512  
+```
+
+## Disease prevalence 1% (nloptwrap)
+
+```{r throm_prevalence3, warning = TRUE, message = TRUE, echo = TRUE}
+m2 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial,
+  control = glmerControl(optimizer = "nloptwrap"))
+```
+
+```{r, echo = TRUE}
+summaryCoef(m2) # offset = log(K/(1 - K)) = -4.59512
+```
+
