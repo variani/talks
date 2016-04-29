@@ -52,8 +52,14 @@ phen <- mutate(phen,
     ifelse(AGE < 74, 1, 2)))))
 
 phen <- mutate(phen,
+  AGEf3num0 = as.numeric(AGEf3 == 0),
+  AGEf3num1 = as.numeric(AGEf3 == 1),
+  AGEf3num2 = as.numeric(AGEf3 == 2))
+
+phen <- mutate(phen,
   ab0f2 = as.factor(ifelse(is.na(ab0), NA, 
     ifelse(ab0 < 0, 0, 1))),
+  ab0f2num = as.numeric(ab0f2) - 1,
   c46tf2 = as.factor(ifelse(is.na(c46t), NA, 
     ifelse(c46t < 0, 0, 1))))
     
@@ -85,6 +91,12 @@ phen2 <- mutate(phen2,
   ABOf2 = factor(ifelse(is.na(ABO), NA, 
     ifelse(grepl("O", ABO), "O", "Not-O")), levels = c("Not-O", "O")),
   ABOf2num = as.numeric(ABOf2) - 1)
+  
+phen2 <- within(phen2, {
+  ABOf3 <- factor(laply(ABO, function(x)
+    ifelse(is.na(x), NA, length(regmatches(x, gregexpr("O", x))[[1]]))))
+  ABOf3num <- as.numeric(ABOf3) - 1
+})
 
 phen2 <- mutate(phen2,
   AGEf = as.factor(ifelse(is.na(AGE), NA, 

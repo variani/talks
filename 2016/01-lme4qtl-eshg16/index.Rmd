@@ -21,22 +21,28 @@ opts_knit$set(upload.fun = identity)
 
 ```{r inc, cache = FALSE}
 library(plyr)
+library(ggplot2)
+library(gridExtra)
 
 library(devtools)
 load_all("~/git/hemostat/lme4qtl")
 ```
 
+```{r par_plotting}
+emphcol <- "#d94d3a" # See styles.css
+```
+
 ```{r local_fun}
 summaryCoef <- function(x, digits = max(3, getOption("digits") - 3),
-  signif.stars = getOption("show.signif.stars")) 
+  signif.stars = getOption("show.signif.stars"), signif.legend = FALSE) 
 { 
   printCoefmat(summary(x)$coefficients, zap.ind = 3, digits = digits, 
-    signif.stars = signif.stars)
+    signif.stars = signif.stars, signif.legend = signif.legend)
 }
 ```
 
 ```{r dat}
-source("R/01-load-data.R")
+source("R/01-load-data.R") 
 ```
 
 ```{r include_cite, cache = FALSE}
@@ -132,6 +138,29 @@ Source: [github.com/dmbates](https://github.com/dmbates)
 
 ## Models (1/7)
 
+<div style="float: right;">
+```{r plot_mod_aptt, fig.width = 4, fig.height = 4}
+N <- 20
+
+m <- relmatLmer(APTT ~ AGEc + (1|ID), phen, relmat = list(ID = dkin))
+
+dat <- subset(phen, !is.na(APTT))
+set.seed(1)
+ind <- sample(seq(1, nrow(dat)), N)
+dat <- dat[ind, ]
+
+dat$yf <- predict(m, dat, re.form = NA)
+dat$yr <- predict(m, dat, re.form = NULL)
+
+ggplot(dat) + 
+  geom_line(aes(AGE, yf), color = emphcol, size = 2) + 
+  geom_point(aes(AGE, APTT)) + 
+  geom_point(aes(AGE, yr), color = emphcol) + 
+  geom_segment(aes(x = AGE, y = yr, xend = AGE, yend = APTT), linetype = 3) +
+  theme_void()
+```
+</div>
+
 * <span class="emph">Polygenic (quantitative trait)</span>
 * Polygenic (binary trait)
 * Polygenic (counts)
@@ -174,6 +203,89 @@ hist(r, breaks = 30)
 
 ## Models (2/7)
 
+<div style="float: right;">
+
+```{r plot_mod_Throm_comp}
+N <- 50
+
+K <- 0.05
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial)
+m0 <- relmatGlmer(Throm ~ AGEsc + SEXfnum + (1|ID), dat, relmat = list(ID = dkin2), family = binomial) 
+  
+dat <- subset(phen2, !is.na(AGEsc))
+set.seed(1)
+ind <- sample(with(dat, which(SEXfnum == 0)), N)
+dat <- dat[ind, ]
+
+beta0 <- log(K/(1 - K))
+logit <- function(x) 1/(1 + exp(-x))
+
+dat$y <- predict(m, dat, re.form = NULL)
+dat$yf <- predict(m, dat, re.form = NA)
+dat <- mutate(dat, prob = logit(y + beta0))
+dat <- mutate(dat, probf = logit(yf + beta0))
+
+simdat <- data.frame(AGEsc = seq(-2.5, 5, 0.05), SEXfnum = 0)
+simdat$y <- predict(m, simdat, re.form = NA)
+simdat$y0 <- predict(m0, simdat, re.form = NA)
+simdat <- mutate(simdat, prob = logit(y + beta0))
+simdat <- mutate(simdat, prob0 = logit(y0))
+
+p1 <- ggplot(simdat) + 
+  geom_line(aes(AGEsc, prob), color = emphcol, size = 2) +
+  geom_line(aes(AGEsc, prob0), color = emphcol, size = 2, linetype = 3) +
+  geom_point(aes(AGEsc, as.numeric(Throm), shape = as.factor(Throm)), dat, size = 2) +
+  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  scale_shape_manual(values = c(1, 19)) + guides(shape = "none") + theme_void()
+```
+
+```{r plot_mod_aff_comp}
+N <- 50
+
+K <- 0.05
+dat <- mutate(phen, offset = log(K/(1 - K)))
+
+m <- relmatGlmer(aff ~ -1 + AGEsc + SEXfnum + (1|ID), dat, offset = offset, relmat = list(ID = dkin), family = binomial)
+m0 <- relmatGlmer(aff ~ AGEsc + SEXfnum + (1|ID), dat, relmat = list(ID = dkin), family = binomial) 
+  
+dat <- subset(phen, !is.na(AGEsc))
+set.seed(1)
+ind <- sample(with(dat, which(SEXfnum == 0)), N)
+dat <- dat[ind, ]
+
+beta0 <- log(K/(1 - K))
+logit <- function(x) 1/(1 + exp(-x))
+
+dat$y <- predict(m, dat, re.form = NULL)
+dat$yf <- predict(m, dat, re.form = NA)
+dat <- mutate(dat, prob = logit(y + beta0))
+dat <- mutate(dat, probf = logit(yf + beta0))
+
+simdat <- data.frame(AGEsc = seq(-2.5, 5, 0.05), SEXfnum = 0)
+simdat$y <- predict(m, simdat, re.form = NA)
+simdat$y0 <- predict(m0, simdat, re.form = NA)
+simdat <- mutate(simdat, prob = logit(y + beta0))
+simdat <- mutate(simdat, prob0 = logit(y0))
+
+p2 <- ggplot(simdat) + 
+  geom_line(aes(AGEsc, prob), color = emphcol, size = 2) +
+  geom_line(aes(AGEsc, prob0), color = emphcol, size = 2, linetype = 3) +
+  geom_point(aes(AGEsc, as.numeric(aff), shape = as.factor(aff)), dat, size = 2) +
+  geom_hline(yintercept = 0.5, linetype = 2) +
+  geom_vline(xintercept = 0, linetype = 2) +
+  scale_shape_manual(values = c(1, 19)) + guides(shape = "none") + theme_void()
+```
+
+```{r plot_mod_logit, fig.width = 4, fig.height = 4}
+#grid.arrange(p1, p2, ncol = 1) # fig.width = 4, fig.height = 2*2.5
+p1
+```
+
+</div>
+
 * Polygenic (quantitative trait)
 * <span class="emph">Polygenic (binary trait)</span>
 * Polygenic (counts)
@@ -201,62 +313,120 @@ m
 
 ```{r throm_cov, echo = TRUE}
 
-m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf2 + (1|ID), phen2, 
+m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), phen2, 
   relmat = list(ID = dkin2), family = binomial)
-summaryCoef(m)
+```
+
+```{r, echo = TRUE}
+summaryCoef(m, signif.legend = TRUE)
 ```
 
 ## Testing covariates
 
 ```{r throm_cov_test, echo = TRUE}
-dat <- subset(phen2, punctured == 1)
+dat <- subset(phen2, !is.na(ABOf3num))
 
-m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf2 + (1|ID), dat, 
+m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), dat, 
   relmat = list(ID = dkin2), family = binomial)
-m0 <- relmatGlmer(Throm ~ (1|ID), dat, 
-  relmat = list(ID = dkin2), family = binomial)
+m0 <- relmatGlmer(Throm ~ AGEsc + SEXf + (1|ID), dat, 
+  relmat = list(ID = dkin2), family = binomial) 
+```
+
+```{r, echo = TRUE}
+anova(m, m0) 
+```
+
+## Disease prevalence 5%
+
+```{r throm_prevalence, echo = TRUE}
+K <- 0.05
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+m0 <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), dat, 
+  relmat = list(ID = dkin2), family = binomial) 
 ```
 
 ```{r, echo = TRUE}
 anova(m, m0)
 ```
 
-## Disease prevalence 2%
+## Disease prevalence 5%, coef. (t-test)
 
-```{r throm_prevalence, echo = TRUE}
-K <- 0.02
-dat <- mutate(phen2, offset = log(K/(1 - K)))
+```{r, echo = TRUE}
+summaryCoef(m) # offset = log(K/(1 - K)) = -2.944439
+summaryCoef(m0)
+```
 
-m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+## Disease prevalence 5%, coef. (anova) 
+
+```{r offset_coef_anova_comp, echo = TRUE}
+K <- 0.05
+dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial)
-m0 <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf2 + (1|ID), dat, 
-  relmat = list(ID = dkin2), family = binomial) 
+m0 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial) 
 ```
 
-```{r, echo = TRUE}
-anova(m, m0)   
+```{r offset_coef_anova_show, echo = TRUE}
+anova(m, m0) # offset = log(K/(1 - K)) = -2.944439
 ```
 
-## Disease prevalence 2%, coefficients
+## Summary on ABO covariate effect
 
-```{r, echo = TRUE}
-summaryCoef(m) # offset = log(K/(1 - K)) = -3.89182
-summaryCoef(m0) 
-```
+|  Model | Estimate | Std. Error | z-value |
+|:-------|:-----|:------------|:---------|
+| Intercept-free | -0.5584 | 0.2160 | -2.585 |
+| Intercept (prevalence) | -0.5662 | 0.2384 | **-2.374** |
+
+<br/>
+
+|  Model | p-value (t-test) | p-value (anova) |
+|:-------|:--------|:---|
+| Intercept-free | 0.00973 (`**`) | 0.005092 (`**`) |
+| Intercept (prevalence) | **0.0176** (`*`) | 0.004031 (`**`) |
+
 
 ## Probit link function
 
 ```{r probit, echo = TRUE}
-K <- 0.01
+K <- 0.05
 dat <- mutate(phen2, offset = -qnorm(1 - K))
 
-m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial(probit))  
 ```
 
 ```{r, echo = TRUE}
-summaryCoef(m) # offset = -qnorm(1 - K) = -2.326348
+summaryCoef(m)  # offset = -qnorm(1 - K) = -1.644854
 ```
+
+## Modeling prevalence?
+
+<div class="columns-2">
+
+<div class="centered">
+GAIT2 (118 _vs._ 817)
+</div>
+
+```{r p1, fig.width = 4, fig.height = 4.5}
+p1
+```
+
+
+<div class="centered">
+GAIT1 (53 _vs._ 340)
+</div>
+
+```{r p2, fig.width = 4, fig.height = 4.5}
+p2
+```
+
+</div>
+
 
 ## References
 
