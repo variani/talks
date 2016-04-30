@@ -2,7 +2,8 @@
 title: "lme4qtl: an efficient and flexible QTL mapper"
 subtitle: "The ESHG 2016 conference, Barcelona, Spain"
 author: Andrey Ziyatdinov
-date: May, 2016
+date: May, 2016 <br/> [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ)
+bibliography: mendeley.bib
 output:
   ioslides_presentation:
     css: styles.css
@@ -23,6 +24,12 @@ opts_knit$set(upload.fun = identity)
 library(plyr)
 library(ggplot2)
 library(gridExtra)
+
+library(pander)
+
+#theme_set(theme_light())
+panderOptions('table.split.table', Inf)
+panderOptions('knitr.auto.asis', FALSE)
 
 library(devtools)
 load_all("~/git/hemostat/lme4qtl")
@@ -58,16 +65,17 @@ source("R/01-load-data.R")
 
 ## About this talk
 
-* It is not a talk (too long)
-* It is a R package vignette (as long as necessary)
+* Not really a talk (too long)
+* Like a R package vignette (as long as necessary)
 
 ## About lme4qtl
 
-An extension of the <span class="emph">lme4</span> R package
-<span class="emph">4</span> (for) <span class="emph">QTL</span> mapping
+<span class="emph">lme4qtl</span> $=$ an extension of the <span class="emph">lme4</span> R package
 
-* The official repository at [github.com/variani/lme4qtl](https://github.com/variani/lme4qtl)
-* This presentation lives here [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ)
+<br/>
+
+<span class="emph">lme4qtl</span> $=$ <span class="emph">l</span>inear <span class="emph">m</span>ixed <span class="emph">e</span>ffects models <span class="emph">4</span> <s>for</s> <span class="emph">qtl</span> mapping
+
 
 ## About lme4qtl user
 
@@ -115,6 +123,20 @@ Source: [github.com/dmbates](https://github.com/dmbates)
 
 * GxE (sex-especificity)
 * GxE (ageing)
+
+## Data preparation
+
+1. Write the formula of your model
+2. Write your data table into a data frame
+3. Compute the relation matrix across your grouping IDs
+
+```{r, echo = TRUE, eval = FALSE}
+relmatLmer(
+  myTrait ~ myCov + (1|ID),     # 1
+  myData,                       # 2
+  relmat = list(ID = myMatrix)  # 3
+)
+```
 
 ## Description of the GAIT data {.smaller}
 
@@ -311,8 +333,7 @@ m
 
 ## Covariates
 
-```{r throm_cov, echo = TRUE}
-
+```{r throm_cov2, echo = TRUE}
 m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), phen2, 
   relmat = list(ID = dkin2), family = binomial)
 ```
@@ -321,20 +342,6 @@ m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), phen2,
 summaryCoef(m, signif.legend = TRUE)
 ```
 
-## Testing covariates
-
-```{r throm_cov_test, echo = TRUE}
-dat <- subset(phen2, !is.na(ABOf3num))
-
-m <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), dat, 
-  relmat = list(ID = dkin2), family = binomial)
-m0 <- relmatGlmer(Throm ~ AGEsc + SEXf + (1|ID), dat, 
-  relmat = list(ID = dkin2), family = binomial) 
-```
-
-```{r, echo = TRUE}
-anova(m, m0) 
-```
 
 ## Disease prevalence 5%
 
@@ -344,22 +351,14 @@ dat <- mutate(phen2, offset = log(K/(1 - K)))
 
 m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial)
-m0 <- relmatGlmer(Throm ~ AGEsc + SEXf + ABOf3num + (1|ID), dat, 
-  relmat = list(ID = dkin2), family = binomial) 
 ```
 
-```{r, echo = TRUE}
-anova(m, m0)
-```
-
-## Disease prevalence 5%, coef. (t-test)
-
-```{r, echo = TRUE}
+```{r, dependson = -1, echo = T}
 summaryCoef(m) # offset = log(K/(1 - K)) = -2.944439
-summaryCoef(m0)
 ```
 
-## Disease prevalence 5%, coef. (anova) 
+
+## Anova
 
 ```{r offset_coef_anova_comp, echo = TRUE}
 K <- 0.05
@@ -367,28 +366,12 @@ dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
 
 m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial)
-m0 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + (1|ID), dat, 
-  offset = offset, relmat = list(ID = dkin2), family = binomial) 
+m0 <- update(m, . ~ . - ABOf3num)
 ```
 
-```{r offset_coef_anova_show, echo = TRUE}
+```{r offset_coef_anova_show, dependson = -1, echo = TRUE}
 anova(m, m0) # offset = log(K/(1 - K)) = -2.944439
 ```
-
-## Summary on ABO covariate effect
-
-|  Model | Estimate | Std. Error | z-value |
-|:-------|:-----|:------------|:---------|
-| Intercept-free | -0.5584 | 0.2160 | -2.585 |
-| Intercept (prevalence) | -0.5662 | 0.2384 | **-2.374** |
-
-<br/>
-
-|  Model | p-value (t-test) | p-value (anova) |
-|:-------|:--------|:---|
-| Intercept-free | 0.00973 (`**`) | 0.005092 (`**`) |
-| Intercept (prevalence) | **0.0176** (`*`) | 0.004031 (`**`) |
-
 
 ## Probit link function
 
@@ -427,14 +410,98 @@ p2
 
 </div>
 
-
-## References
-
-```{r, results = "asis"}
-#bibliography()
-```
+See also [@Zaitlen2012]
 
 ## Thank you
+
+* The official repository at [github.com/variani/lme4qtl](https://github.com/variani/lme4qtl)
+* This presentation lives here [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ)
+
+# More examples 
+
+## Examples 
+
+* ABO covariate effect
+    * comparision of two tests, t-test _vs._ anova
+* Categorical age effect
+    * increasing disease risk with age (non-linearly?)
+
+
+## ABO covariate effect (t-test)
+
+```{r throm_cov, echo = TRUE}
+K <- 0.05
+dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+```
+
+```{r, dependson = -1, echo = TRUE}
+summaryCoef(m, signif.legend = TRUE) 
+```
+
+## ABO covariate effect (anova)
+
+```{r throm_cov_test, echo = TRUE}
+K <- 0.05
+dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+m0 <- update(m, . ~ . - ABOf3num)
+```
+
+```{r, dependson = -1, echo = TRUE}
+anova(m, m0) 
+```
+
+## ABO covariate effect (summary)
+
+|  Model | Estimate | Std. Error | z-value |
+|:-------|:-----|:------------|:---------|
+| Intercept-free | -0.5584 | 0.2160 | -2.585 |
+| Intercept (prevalence) | -0.5662 | 0.2384 | **-2.374** |
+
+<br/>
+
+|  Model | p-value (t-test) | p-value (anova) |
+|:-------|:--------|:---|
+| Intercept-free | 0.00973 (`**`) | 0.005092 (`**`) |
+| Intercept (prevalence) | **0.0176** (`*`) | 0.004031 (`**`) |
+
+
+## Categorical age effect
+
+```{r tab_AGEf}
+tab <- ddply(phen2, "AGEf", summarize, 
+  Range = paste("[", 
+    paste(round(range(AGE, na.rm = TRUE), 1), collapse = " - "), 
+    "]", collapse = ""), 
+  N = sum(!is.na(AGE)))
+```
+
+```{r, dependson = -1, results = 'asis'}
+tab <- tab[1:5, ]
+
+colnames(tab) <- c("Factor level of AGEf", "Range of AGE", "Number of ind.")
+
+pander(tab, style = 'rmarkdown')
+```
+
+## Categorical age effect
+
+```{r m_AGEf, echo = TRUE} 
+K <- 0.05
+dat <- mutate(phen2, offset = -qnorm(1 - K))
+
+m <- relmatGlmer(Throm ~ AGEf + SEXf + ABOf3num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial(probit))
+```  
+
+```{r, dependson = -1, echo = T}
+summaryCoef(m)
+```
 
 # Caveats
 
@@ -448,23 +515,24 @@ p2
 K <- 0.01
 dat <- mutate(phen2, offset = log(K/(1 - K)))
 
-m1 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+m1 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial) 
 ```
 
-```{r, echo = TRUE}
+```{r, dependson = -1, echo = TRUE}
 summaryCoef(m1) # offset = log(K/(1 - K)) = -4.59512  
 ```
 
 ## Disease prevalence 1% (nloptwrap)
 
 ```{r throm_prevalence3, warning = TRUE, message = TRUE, echo = TRUE}
-m2 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf2num + (1|ID), dat, 
+m2 <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial,
   control = glmerControl(optimizer = "nloptwrap"))
 ```
 
-```{r, echo = TRUE}
+```{r, dependson = -1, echo = TRUE}
 summaryCoef(m2) # offset = log(K/(1 - K)) = -4.59512
 ```
 
+## References
