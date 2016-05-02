@@ -12,3 +12,8 @@ https://github.com/rstudio/rmarkdown/blob/master/inst/rmd/ioslides/ioslides-13.5
   color: #d94d3a;
   font-weight: bold;
 }
+
+.imgblock img {
+  display: block;
+  width: 100%;
+}

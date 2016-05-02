@@ -15,12 +15,12 @@ output:
 opts_chunk$set(fig.path = 'figure/', cache.path = 'cache/', echo = FALSE, cache = TRUE, 
   tidy = FALSE, 
   fig.width = 9, fig.height = 4.5, dev = 'png',
-  warning = FALSE, message = FALSE)
+  warning = FALSE, message = TRUE)
 # upload images automatically? (identity/imgur_upload)
 opts_knit$set(upload.fun = identity)
 ```
 
-```{r inc, cache = FALSE}
+```{r inc, cache = FALSE, message = FALSE, warning = FALSE}
 library(plyr)
 library(ggplot2)
 library(gridExtra)
@@ -33,6 +33,8 @@ panderOptions('knitr.auto.asis', FALSE)
 
 library(devtools)
 load_all("~/git/hemostat/lme4qtl")
+
+library(RLRsim)
 ```
 
 ```{r par_plotting}
@@ -48,15 +50,15 @@ summaryCoef <- function(x, digits = max(3, getOption("digits") - 3),
 }
 ```
 
-```{r dat}
+```{r dat, message = FALSE, warning = FALSE}
 source("R/01-load-data.R") 
 ```
 
-```{r include_cite, cache = FALSE}
+```{r include_cite, cache = FALSE, message = FALSE, warning = FALSE}
 #library(knitcitations)
 ```
 
-```{r knitcitations, cache = FALSE}
+```{r knitcitations, cache = FALSE, message = FALSE, warning = FALSE}
 #cite_options(linked = TRUE)
 #cite_options(tooltip = TRUE)
 
@@ -66,7 +68,7 @@ source("R/01-load-data.R")
 ## About this talk
 
 * Not really a talk (too long)
-* Like a R package vignette (as long as necessary)
+* Like an R package vignette (as long as necessary)
 
 ## About lme4qtl
 
@@ -80,8 +82,8 @@ source("R/01-load-data.R")
 ## About lme4qtl user
 
 1. You use mixed models for QTL mapping 
-    * Basic models (<span class="emph">efficiency</span>)
-    * Advanced models (<span class="emph">flexibility</span>)
+    * Basic models <span class="emph">(efficiency)</span>
+    * Advanced models <span class="emph">(flexibility)</span>
 2. You code in R
     * If not, just need to learn the formula interface
 3. You are a fan of the [lme4](https://github.com/lme4/lme4) R package
@@ -132,9 +134,9 @@ Source: [github.com/dmbates](https://github.com/dmbates)
 
 ```{r, echo = TRUE, eval = FALSE}
 relmatLmer(
-  myTrait ~ myCov + (1|ID),     # 1
-  myData,                       # 2
-  relmat = list(ID = myMatrix)  # 3
+  myTrait ~ myCovariate + (1|myID),  # 1
+  myData,                            # 2
+  relmat = list(myID = myMatrix)     # 3
 )
 ```
 
@@ -197,6 +199,17 @@ ggplot(dat) +
 * GxE (sex-especificity)
 * GxE (ageing)
 
+## APTT phenotype
+
+Activated partial thromboplastin time (APTT) is a clinical test used
+to screen for coagulation-factor deficiencies.
+
+Associations with KNG1, HRG, F11, F12, and ABO were confirmed 
+in a meta-anaysis of 9,240 individuals (European ancestry) [@Tang2012]
+
+<div class="imgblock">
+![](image/aptt-meta.png)
+</div>
 
 ## Polygenic model for APTT
 
@@ -222,6 +235,56 @@ hist(r, breaks = 30)
 ```
 
 </div>
+
+## Drop fixed effects
+
+```{r cont_fixed_eff, echo = TRUE}
+m <- relmatLmer(APTT ~ AGEsc + I(AGEsc^2) + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin), REML = FALSE)
+```
+
+```{r cont_fixed_eff2, dependson = -1, echo = TRUE}
+drop1(m, test = "Chisq")
+```
+
+## Anova
+
+```{r cont_anova, echo = TRUE}
+m <- relmatLmer(APTT ~ AGEsc + I(AGEsc^2) + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin))
+```
+
+```{r cont_anova2, dependson = -1, echo = TRUE}
+m0 <- update(m, . ~ . - (1|HHID))
+anova(m, m0) 
+```
+
+
+## Exact Restricted LRT (single effect)
+
+```{r cont_exact_lrt, echo = TRUE}
+m <- relmatLmer(APTT ~ AGEsc + I(AGEsc^2) + SEXf + (1|ID), 
+  phen, relmat = list(ID = dkin))
+```
+
+```{r cont_cont_exact_lrt1, dependson = -1, echo = TRUE}
+library(RLRsim)
+exactRLRT(m)
+```
+
+## Exact Restricted LRT (many effects)
+
+```{r cont2_exact_lrt, echo = TRUE}
+m <- relmatLmer(APTT ~ AGEsc + I(AGEsc^2) + SEXf + (1|ID), 
+  phen, relmat = list(ID = dkin))
+m0 <- update(m, . ~ . + (1|HHID))  
+```
+
+```{r cont_cont_exact_lrt2, dependson = -1, echo = TRUE}
+library(RLRsim)
+exactRLRT(m0, mA = m, m0 = m0)
+```
+
 
 ## Models (2/7)
 
@@ -366,10 +429,10 @@ dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
 
 m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial)
-m0 <- update(m, . ~ . - ABOf3num)
 ```
 
 ```{r offset_coef_anova_show, dependson = -1, echo = TRUE}
+m0 <- update(m, . ~ . - ABOf3num) 
 anova(m, m0) # offset = log(K/(1 - K)) = -2.944439
 ```
 
@@ -386,6 +449,8 @@ m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat,
 ```{r, echo = TRUE}
 summaryCoef(m)  # offset = -qnorm(1 - K) = -1.644854
 ```
+
+See also [@Zaitlen2012]
 
 ## Modeling prevalence?
 
@@ -410,7 +475,55 @@ p2
 
 </div>
 
-See also [@Zaitlen2012]
+## Models (4/7)
+
+
+* Polygenic (quantitative trait)
+* Polygenic (binary trait)
+* Polygenic (counts)
+
+<br/>
+
+* <span class="emph">Association (quantitative trait)</span>
+* Linkage (quantitative trait)
+
+<br/>
+
+* GxE (sex-especificity)
+* GxE (ageing)
+
+
+## Association between APTT and AB0
+
+```{r assoc, echo = TRUE}
+dat <- subset(phen, !is.na(ab0))
+m <- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))
+```
+
+```{r assoc_anova, echo = TRUE}
+m1 <- update(m, . ~. + ab0)
+anova(m, m1)
+```
+
+# lme4qtl is flexible | AB0 affects both mean and variance
+
+## Association between APTT and AB0
+
+```{r assoc2, echo = TRUE}
+dat <- subset(phen, !is.na(ab0))
+m <- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))
+```
+
+```{r assoc2_anova, echo = TRUE}
+m2 <- update(m, . ~. + ab0 + (1|ab0))
+anova(m, m2)
+```
+
+## Association between APTT and AB0 | Variance explained by ABO is small
+
+```{r assoc2_m2, echo = TRUE}
+m2
+```
 
 ## Thank you
 
@@ -461,14 +574,14 @@ anova(m, m0)
 |  Model | Estimate | Std. Error | z-value |
 |:-------|:-----|:------------|:---------|
 | Intercept-free | -0.5584 | 0.2160 | -2.585 |
-| Intercept (prevalence) | -0.5662 | 0.2384 | **-2.374** |
+| Intercept (prevalence) | -0.5662 | 0.2384 | -2.374 |
 
 <br/>
 
 |  Model | p-value (t-test) | p-value (anova) |
 |:-------|:--------|:---|
 | Intercept-free | 0.00973 (`**`) | 0.005092 (`**`) |
-| Intercept (prevalence) | **0.0176** (`*`) | 0.004031 (`**`) |
+| Intercept (prevalence) | 0.0176 (`*`) | 0.004031 (`**`) |
 
 
 ## Categorical age effect
