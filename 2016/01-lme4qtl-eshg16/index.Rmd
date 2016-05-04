@@ -40,6 +40,7 @@ library(RLRsim)
 
 ```{r par_plotting}
 emphcol <- "#d94d3a" # See styles.css
+emphcol2 <- "#2a7cdf" # blue #4387fd; blue2 #3c8ef3; blue3 #2a7cdf;
 ```
 
 ```{r local_fun}
@@ -67,7 +68,7 @@ summaryCoef <- function(x, digits = max(3, getOption("digits") - 3),
 ```
 
 ```{r dat, message = FALSE, warning = FALSE}
-source("R/01-load-data.R") 
+source("R/01-load-data.R")
 ```
 
 ```{r include_cite, cache = FALSE, message = FALSE, warning = FALSE}
@@ -436,22 +437,6 @@ m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat,
 summaryCoef(m) # offset = log(K/(1 - K)) = -2.944439
 ```
 
-
-## Anova
-
-```{r offset_coef_anova_comp, echo = TRUE}
-K <- 0.05
-dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
-
-m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
-  offset = offset, relmat = list(ID = dkin2), family = binomial)
-```
-
-```{r offset_coef_anova_show, dependson = -1, echo = TRUE}
-m0 <- update(m, . ~ . - ABOf3num) 
-anova(m, m0) # offset = log(K/(1 - K)) = -2.944439
-```
-
 ## Probit link function
 
 ```{r probit, echo = TRUE}
@@ -532,27 +517,27 @@ p
 
 ```{r assoc, echo = TRUE}
 dat <- subset(phen, !is.na(ab0))
-m <- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))
+m0 <- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))
 ```
 
-```{r assoc_anova, echo = TRUE}
-m1 <- update(m, . ~. + ab0)
-anova(m, m1)
+```{r assoc_anova, dependson  = -1, echo = TRUE}
+m <- update(m0, . ~. + ab0)
+anova(m0, m)
 ```
 
-# lme4qtl is <span class="emph">flexible</span> | AB0 affects both mean and variance of APTT <br/> *Do not confuse with model in [@Chen2007]
+# lme4qtl is <span class="emph">flexible</span> | AB0 influences both mean and variance of APTT <br/> *Don't confuse it with model in [@Chen2007]
 
 
 ## Association between APTT and AB0
 
 ```{r assoc2, echo = TRUE}
 dat <- subset(phen, !is.na(ab0))
-m <- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))
+m0 <- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))
 ```
 
 ```{r assoc2_anova, echo = TRUE}
-m1 <- update(m, . ~. + ab0)
-m2 <- update(m, . ~. + ab0 + (1|ab0))
+m1 <- update(m0, . ~. + ab0)
+m2 <- update(m0, . ~. + ab0 + (1|ab0))
 anova(m1, m2)
 ```
 
@@ -633,7 +618,7 @@ p2
 * GxE (ageing)
 
 
-## Locus F12 linked to APTT
+## Locus F12 and its MIBD matrix
 
 ```{r link_mibd, echo = TRUE}
 f <- system.file("extdata/gait1/mibd.5.200.gz", package = "gait")
@@ -643,11 +628,22 @@ mf <- read_mibd_csv_gz(f)
 mibd <- Matrix(mf2mat(mf))
 ```
 
+```{r, echo = TRUE}
+mibd[1:4, 1:4] # a submatrix of 449 x 449
+```
+
+```{r, echo = TRUE}
+dim(mibd)
+```
+
+
+## Locus F12 linked to APTT
+
 ```{r link_aptt, echo = TRUE}
 dat <- mutate(phen, IBDID = ID)
 
 m <- relmatLmer(APTT ~ AGEsc + (1|ID) + (1|IBDID), dat, 
-  relmat = list(ID = dkin, IBDID = mibd))
+  relmat = list(ID = dkin, IBDID = mibd), REML = FALSE)
 
 m0 <- update(m, . ~ . - (1|IBDID))
 
@@ -659,7 +655,7 @@ m0 <- update(m, . ~ . - (1|IBDID))
 
 ```{r link_fxii, echo = TRUE}
 m <- relmatLmer(FXII ~ (1|ID) + (1|IBDID), dat, 
-  relmat = list(ID = dkin, IBDID = mibd))
+  relmat = list(ID = dkin, IBDID = mibd), REML = FALSE)
 
 m0 <- update(m, . ~ . - (1|IBDID))
 
@@ -699,6 +695,233 @@ m2 <- update(m, . ~ . - (1|IBDID))
 ```{r link_assoc_fxii3, echo = TRUE}
 anova(m, m0, m1, m2)
 ```
+
+## Models (6/7)
+
+```{r plot_mod_linkdxg, message = FALSE}
+ids <- c("01101", "01102",
+  "01202", "01205", "01210", "01203", "01208",
+  "01211", "01204", "01209")
+
+# kinship
+ind <- rownames(dkin) %in% ids
+mat <- dkin[ind, ind]
+
+pf <- melt(mat) # Var1 Var2 value
+pf <- mutate(pf,
+  Var1 = factor(Var1, levels = as.numeric(ids)),  
+  Var2 = factor(Var2, levels = rev(as.numeric(ids))))
+
+pf <- join(pf, data.frame(Var1 = as.numeric(phen$ID), SEX1 = phen$SEX))
+pf <- join(pf, data.frame(Var2 = as.numeric(phen$ID), SEX2 = phen$SEX))
+
+pf <- mutate(pf,
+  value = ifelse(SEX1 == 1 & SEX2 == 1, -value, 
+    ifelse(SEX1 == 2 & SEX2 == 2, value, 0)))
+
+p3 <- ggplot(pf, aes(Var1, Var2)) + geom_tile(aes(fill = value), color = "white") + 
+  scale_fill_gradient2(low = emphcol2, mid = "white", high = emphcol, na.value = "grey80")
+
+p3 <- p3 + guides(fill = "none") + theme_void()
+
+# mibd
+f <- system.file("extdata/gait1/mibd.5.200.gz", package = "gait")
+  
+mf <- read_mibd_csv_gz(f)
+mf <- mf[, 1:3]
+
+mf <- subset(mf, ID1%in% ids & ID2 %in% ids)
+mat <- mf2mat(mf)
+
+pf <- melt(mat) # Var1 Var2 value
+pf <- mutate(pf,
+  Var1 = factor(Var1, levels = as.numeric(ids)),  
+  Var2 = factor(Var2, levels = rev(as.numeric(ids))))
+
+pf <- join(pf, data.frame(Var1 = as.numeric(phen$ID), SEX1 = phen$SEX))
+pf <- join(pf, data.frame(Var2 = as.numeric(phen$ID), SEX2 = phen$SEX))
+
+pf <- mutate(pf,
+  value = ifelse(SEX1 == 1 & SEX2 == 1, -value, 
+    ifelse(SEX1 == 2 & SEX2 == 2, value, 0)))
+
+p4 <- ggplot(pf, aes(Var1, Var2)) + geom_tile(aes(fill = value), color = "white") + 
+  scale_fill_gradient2(low = emphcol2, mid = "white", high = emphcol, na.value = "grey80")
+
+p4 <- p4 + guides(fill = "none") + theme_void()
+```
+
+<div style="float: right;">
+```{r plot_mod_linkdxg1, dependson = -1, fig.width = 2, fig.height = 2}
+p1
+```
+
+```{r plot_mod_linkdxg2, dependson = c(-1, -2), fig.width = 2, fig.height = 2}
+p3
+```
+</div>
+
+* Polygenic (quantitative trait)
+* Polygenic (binary trait)
+* Polygenic (counts)
+
+<br/>
+
+* Association (quantitative trait)
+* Linkage (quantitative trait)
+
+<br/>
+
+* <span class="emph">GxE (sex-especificity)</span>
+* GxE (ageing)
+
+
+## Sex-specificity for BMI (GAIT1)
+
+```{r bmi_gait1_11, echo = TRUE}
+m0 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin))
+
+m1 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (0 + SEXf|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 3)))
+  
+m2 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (0 + SEXf|ID) + (0 + SEXf|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 5)))  
+```  
+
+## Sex-specificity for BMI (GAIT1)
+
+```{r bmi_gait1_2, dependson = -1, echo = TRUE}
+VarCorr(m1)
+VarCorr(m2)
+```  
+
+## Sex-specificity for BMI (GAIT1)
+
+```{r bmi_gait1_3, dependson = -2, echo = TRUE}
+anova(m0, m1, m2)
+```  
+
+## Sex-specificity for BMI (GAIT2)
+
+```{r bmi_gait2_1}
+m0 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), 
+  phen2, relmat = list(ID = dkin2))
+
+m1 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + 
+    (1|ID) + (0 + SEXf|RID) + (1|HHID), 
+  phen2, relmat = list(ID = dkin2), 
+  weights = rep(1e10, nrow(phen2)), vcControl = list(rho0 = list(rid = 3)))
+  
+m2 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + 
+    (0 + SEXf|ID) + (0 + SEXf|RID) + (1|HHID), 
+  phen2, relmat = list(ID = dkin2), 
+  weights = rep(1e10, nrow(phen2)), vcControl = list(rho0 = list(rid = 5)))    
+```  
+
+```{r bmi_gait1_22, dependson = -1, echo = TRUE}
+VarCorr(m1)
+VarCorr(m2)
+```  
+
+## Sex-specificity for BMI (GAIT2)
+
+```{r bmi_gait2_3, dependson = -2, echo = TRUE}
+anova(m0, m1, m2)
+```  
+
+## Models (7/7)
+
+```{r plot_mod_ageing, message = FALSE}
+#
+```
+
+<div style="float: right;">
+```{r plot_mod_ageing1, dependson = -1, fig.width = 2, fig.height = 2}
+p1
+```
+
+```{r plot_mod_ageing2, dependson = c(-1, -2), fig.width = 2, fig.height = 2}
+#p5
+```
+
+</div>
+
+* Polygenic (quantitative trait)
+* Polygenic (binary trait)
+* Polygenic (counts)
+
+<br/>
+
+* Association (quantitative trait)
+* Linkage (quantitative trait)
+
+<br/>
+
+* GxE (sex-especificity)
+* <span class="emph">GxE (ageing)</span>
+
+
+## Ageing for BMI (GAIT1)
+
+```{r bmi_gait1_1, echo = TRUE}
+m0 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin))
+
+m1 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (1 + AGEsc|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 3)))
+  
+m2 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1 + AGEsc|ID) + (1 + AGEsc|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 5)))
+```  
+
+## Ageing for BMI (GAIT1)
+
+```{r abmi_gait1_2, dependson = -1, echo = TRUE}
+VarCorr(m1)
+VarCorr(m2)
+```  
+
+## Ageing for BMI (GAIT1)
+
+```{r abmi_gait1_3, dependson = -2, echo = TRUE}
+anova(m0, m1, m2)
+```  
+
+## Ageing for BMI (GAIT2)
+
+```{r abmi_gait2_1}
+m0 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), phen2, relmat = list(ID = dkin2))
+
+m1 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (1 + AGEsc|RID) + (1|HHID), phen2, 
+  relmat = list(ID = dkin2), 
+  weights = rep(1e10, nrow(phen2)), vcControl = list(rho0 = list(rid = 3)))
+  
+m2 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1 + AGEsc|ID) + (1 + AGEsc|RID) + (1|HHID), phen2, 
+  relmat = list(ID = dkin2), 
+  weights = rep(1e10, nrow(phen2)), vcControl = list(rho0 = list(rid = 5)))
+```  
+
+```{r abmi_gait1_22, dependson = -1, echo = TRUE}
+VarCorr(m1)
+VarCorr(m2)
+```  
+
+## Ageing for BMI (GAIT2)
+
+```{r abmi_gait2_3, dependson = -2, echo = TRUE}
+anova(m0, m1, m2)
+```   
 
 ## Thank you
 

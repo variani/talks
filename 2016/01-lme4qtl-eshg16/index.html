@@ -477,27 +477,6 @@ m &lt;- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat,
 ## SEXfnum    0.3171     0.2643   1.200   0.2302    
 ## ABOf3num  -0.5662     0.2384  -2.374   0.0176 *</pre>
 
-</article></slide><slide class=''><hgroup><h2>Anova</h2></hgroup><article  id="anova-1">
-
-<pre class = 'prettyprint lang-r'>K &lt;- 0.05
-dat &lt;- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
-
-m &lt;- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
-  offset = offset, relmat = list(ID = dkin2), family = binomial)</pre>
-
-<pre class = 'prettyprint lang-r'>m0 &lt;- update(m, . ~ . - ABOf3num) 
-anova(m, m0) # offset = log(K/(1 - K)) = -2.944439</pre>
-
-<pre >## Data: dat
-## Models:
-## m0: Throm ~ AGEsc + SEXfnum + (1 | ID) - 1
-## m: Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1 | ID)
-##    Df    AIC    BIC  logLik deviance  Chisq Chi Df Pr(&gt;Chisq)   
-## m0  3 584.09 598.54 -289.04   578.09                            
-## m   4 577.82 597.08 -284.91   569.82 8.2699      1   0.004031 **
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
-
 </article></slide><slide class=''><hgroup><h2>Probit link function</h2></hgroup><article  id="probit-link-function">
 
 <pre class = 'prettyprint lang-r'>K &lt;- 0.05
@@ -555,33 +534,33 @@ Association (quantitative trait)</span></li>
 </article></slide><slide class=''><hgroup><h2>Association between APTT and AB0</h2></hgroup><article  id="association-between-aptt-and-ab0">
 
 <pre class = 'prettyprint lang-r'>dat &lt;- subset(phen, !is.na(ab0))
-m &lt;- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))</pre>
+m0 &lt;- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))</pre>
 
-<pre class = 'prettyprint lang-r'>m1 &lt;- update(m, . ~. + ab0)
-anova(m, m1)</pre>
+<pre class = 'prettyprint lang-r'>m &lt;- update(m0, . ~. + ab0)
+anova(m0, m)</pre>
 
 <pre >## refitting model(s) with ML (instead of REML)</pre>
 
 <pre >## Data: dat
 ## Models:
-## m: APTT ~ AGEsc + (1 | ID)
-## m1: APTT ~ AGEsc + (1 | ID) + ab0
+## m0: APTT ~ AGEsc + (1 | ID)
+## m: APTT ~ AGEsc + (1 | ID) + ab0
 ##    Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(&gt;Chisq)    
-## m   4 -792.18 -776.38 400.09  -800.18                             
-## m1  5 -801.47 -781.71 405.73  -811.47 11.286      1  0.0007808 ***
+## m0  4 -792.18 -776.38 400.09  -800.18                             
+## m   5 -801.47 -781.71 405.73  -811.47 11.286      1  0.0007808 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
 
 </article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>lme4qtl is <span class="emph">
-flexible</span> </h2><h3> AB0 affects both mean and variance of APTT <br/> *Do not confuse with model in <span class="cite">(Chen and Abecasis 2007)</span></h3></hgroup><article  id="lme4qtl-is-flexible-ab0-affects-both-mean-and-variance-of-aptt-do-not-confuse-with-model-in-chen2007">
+flexible</span> </h2><h3> AB0 influences both mean and variance of APTT <br/> *Don&#39;t confuse it with model in <span class="cite">(Chen and Abecasis 2007)</span></h3></hgroup><article  id="lme4qtl-is-flexible-ab0-influences-both-mean-and-variance-of-aptt-dont-confuse-it-with-model-in-chen2007">
 
 </article></slide><slide class=''><hgroup><h2>Association between APTT and AB0</h2></hgroup><article  id="association-between-aptt-and-ab0-1">
 
 <pre class = 'prettyprint lang-r'>dat &lt;- subset(phen, !is.na(ab0))
-m &lt;- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))</pre>
+m0 &lt;- relmatLmer(APTT ~ AGEsc + (1|ID), dat, relmat = list(ID = dkin))</pre>
 
-<pre class = 'prettyprint lang-r'>m1 &lt;- update(m, . ~. + ab0)
-m2 &lt;- update(m, . ~. + ab0 + (1|ab0))
+<pre class = 'prettyprint lang-r'>m1 &lt;- update(m0, . ~. + ab0)
+m2 &lt;- update(m0, . ~. + ab0 + (1|ab0))
 anova(m1, m2)</pre>
 
 <pre >## refitting model(s) with ML (instead of REML)</pre>
@@ -642,7 +621,7 @@ Linkage (quantitative trait)</span></li>
 <li>GxE (ageing)</li>
 </ul>
 
-</article></slide><slide class=''><hgroup><h2>Locus F12 linked to APTT</h2></hgroup><article  id="locus-f12-linked-to-aptt">
+</article></slide><slide class=''><hgroup><h2>Locus F12 and its MIBD matrix</h2></hgroup><article  id="locus-f12-and-its-mibd-matrix">
 
 <pre class = 'prettyprint lang-r'>f &lt;- system.file(&quot;extdata/gait1/mibd.5.200.gz&quot;, package = &quot;gait&quot;)
 
@@ -650,29 +629,44 @@ library(solarius)
 mf &lt;- read_mibd_csv_gz(f)
 mibd &lt;- Matrix(mf2mat(mf))</pre>
 
+<pre class = 'prettyprint lang-r'>mibd[1:4, 1:4] # a submatrix of 449 x 449</pre>
+
+<pre >## 4 x 4 sparse Matrix of class &quot;dsCMatrix&quot;
+##       01101 01102  01202  01203
+## 01101   1.0   .   0.5000 0.5000
+## 01102   .     1.0 0.5000 0.5000
+## 01202   0.5   0.5 1.0000 0.9965
+## 01203   0.5   0.5 0.9965 1.0000</pre>
+
+<pre class = 'prettyprint lang-r'>dim(mibd)</pre>
+
+<pre >## [1] 449 449</pre>
+
+</article></slide><slide class=''><hgroup><h2>Locus F12 linked to APTT</h2></hgroup><article  id="locus-f12-linked-to-aptt">
+
 <pre class = 'prettyprint lang-r'>dat &lt;- mutate(phen, IBDID = ID)
 
 m &lt;- relmatLmer(APTT ~ AGEsc + (1|ID) + (1|IBDID), dat, 
-  relmat = list(ID = dkin, IBDID = mibd))
+  relmat = list(ID = dkin, IBDID = mibd), REML = FALSE)
 
 m0 &lt;- update(m, . ~ . - (1|IBDID))
 
 # anova(m, m0)
 (LOD &lt;- (logLikNum(m) - logLikNum(m0)) / log(10))</pre>
 
-<pre >## [1] 1.264451</pre>
+<pre >## [1] 1.271161</pre>
 
 </article></slide><slide class=''><hgroup><h2>Locus F12 linked to FXII</h2></hgroup><article  id="locus-f12-linked-to-fxii">
 
 <pre class = 'prettyprint lang-r'>m &lt;- relmatLmer(FXII ~ (1|ID) + (1|IBDID), dat, 
-  relmat = list(ID = dkin, IBDID = mibd))
+  relmat = list(ID = dkin, IBDID = mibd), REML = FALSE)
 
 m0 &lt;- update(m, . ~ . - (1|IBDID))
 
 # anova(m, m0)
 (LOD &lt;- (logLikNum(m) - logLikNum(m0)) / log(10))</pre>
 
-<pre >## [1] 9.329944</pre>
+<pre >## [1] 9.326086</pre>
 
 </article></slide><slide class='segue dark nobackground'><hgroup class = 'auto-fadein'><h2>lme4qtl is <span class="emph">
 flexible</span> </h2><h3> Combined linkage-association model <br/> *Aslmost the same model as in <span class="cite">(Chen and Abecasis 2007)</span></h3></hgroup><article  id="lme4qtl-is-flexible-combined-linkage-association-model-aslmost-the-same-model-as-in-chen2007">
@@ -729,6 +723,254 @@ m2 &lt;- update(m, . ~ . - (1|IBDID))</pre>
 ## m   5 3592.0 3611.8 -1791.0   3582.0   2.7186      1    0.09918 .  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
+</article></slide><slide class=''><hgroup><h2>Models (6/7)</h2></hgroup><article  id="models-67">
+
+<div style="float: right;">
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAMAAACTGUWNAAABLFBMVEXZTTrZTjzcW0neZFPeZVTfZ1fhc2TkgHLmiHznjYHolInqn5XtrKPur6fvsqrwtq3wuLDwuLHyxL3yxb7zxb/zxsD0zMf10s3108/3qJj3qZn32NT33Nj4r6D4s6X4s6b4tKb4tKf4taf4ua343dn43tr44t/5ua35u675vrL5v7P5wbX5w7j54+D55OL6xLn6yb/65+T71s/718/72NH76+j82dP82tP829X83NX83Nb83db83df839n84Nr84Nv84dz84tz84t385N/88e/89PL95N/95uL96eX96uX96+j97Oj97On97en97er97uv+7er+7ur+7+z+8O3+8e7+8e/+8vD+9PL+9fL+9fP+9fT+9vT++vr++/r++/v/+/r/+/v//Pr//Pv////I2oIKAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAFfElEQVR4nO3bWZMVRRSFUZwnRJxnxHlWbBS1EVQcWgVFGRVUVP7/fzB8K09GUKdvVLntYH3PO/ISvch6y33XFW1f+h9wswcgHIBwU4C79s33QOvUF56c75tnG6OzTzVG5xqb3ujYOn/kGwVgGoAaAAArB2AagBoAACsHYBqAGgAAKwdgGoAaAAArB2AagBoAACsHYBqAGgAAKwdgGoAaAAArB2AagBoAACsHYBqAGgAAKwdgGoAaAAArB2AagBoAACsHYBqA2s0F8PbT833ZOvX8mfmunW2M/mpszvzRGf3ZGf2yzh/5Ru36leSdjWvysBvQDsA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQ+80XvJ91Xmk92vnkd7vnad1v3VG1zqjq2v8iW/cFODNxv+Rj15rjE7d0bgmj7sBAGoAagBqAAAMAagBALDZCEANQA0AgCEANQAANhsBqAGoAQAwBKAGAMBmIwA1ADUAAIYA1AAA2GwEoAagBgDAEIAaAACbjQDUANQAABgCUAMAYLMRgBqAGgAAQwBqADYD+GRrvp2PG6NvP2yMTt+/f75njjZO+qGx2fq+M3o/C7DcDWg9U721cU1euqluAAAAAOYCAGAIQA0AgM1GAADMBQDAEIAaAACbjQAAmAsAgCEANQAANhsBADAXAABDAGoAAGw2AgBgLgAAhgDUAADYbAQAwFwAAAwBqAEAsNkIAIC5AAAYAlADsBnA19vz/XiqMTr/aWN06URjdPnBg/O91zho+1JndCIL8B/fgNYz1Vsa1+TlxkF74gYAAFADUAMAAMBsAAAMAagBADAEoAagBgAAgNkAABgCUAMAYAhADUANAAAAswEAMASgBgDAEIAagBoAAABmAwBgCEANAIAhADUANQAAAMwGAMAQgBqAAWCn8Yzt3BedB3GfNUY/dx7pXT3eGF1pPOQ7+EHjoO3PswD/xxvQeqbauCW9a+ITVANQAwBgCEANAAAAswEAMASgBqAGAMAQgBoAAABmAwBgCEANQA0AgCEANQAAAMwGAMAQgBqAGgAAQwBqAAAAmA0AgCEANQA1AACGANQAAAAwG4AB4Mih+U6+1RjtvN4YffdiY3Thuc7otkavNA46dDwLcGprvp9ONEYXthujy8cao6tHG6Mrjc3Wlf2NHsoC7NlPUGPT+04dAFACUAMAYAhADQCAcQSgBAAAgNkA1AAAGAJQAwBgHAEoAQAAYDYANQAAhgDUAAAYRwBKAAAAmA1ADQCAIQA1AADGEYASAAAAZgNQAwBgCEANAIBxBKAEYAA4cni+k+82RjtvNEanX22MLjzfGF1sbA5fvL3RwSyArj/WaNlfBPCvOt+phX9x2eP2egDCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQh3T6NlfxHArnvk3kbt0wDsugOLfqcA7DoA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEe+K+Ru3TAKzTo3c3+mcIYJ3a3ykA6wQgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBw3ojtlQCEAxAOQDgA4QCEAxAOQDgA4QCEAxDubxSjvaXsLTF7AAAAAElFTkSuQmCC" title="" alt="" width="192" /></p>
+
+<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAMAAACTGUWNAAABC1BMVEUqfN9FjeNGjeNVluVnoeicwvCjxvGnyfGou/Cqy/KzxPK0xPK40/TBzvTC2vbJ1fbR4/jW3/jX5vnZTTrZTjzZ4vnb4/ncW0nc6vrd5fnd6vrfZ1fg5/ng5/rhc2Ti6PrmiHzqn5Xs8PztrKPur6fu8fzu9P3vsqrv8vzwuLDwuLHxv7jx9P3yxb7zxsD0y8b10s319/32+f33qJj3qZn32NT33Nj4r6D4taf43dn43tr4+/75u6755OL6+/771s/718/82dP82tP83NX83Nb83tj839n84Nv84t387uz89PL8/P796eX96uX97Oj97On97uv99PT+8O3+8vD+9PL++Pb++vr++/v///891kp4AAAACXBIWXMAAB2HAAAdhwGP5fFlAAAEuUlEQVR4nO3dx5YVVRhA4Ta3oCIiBswR1Da0OWMWI4jx/Z/Exax1QP1X7q29aL9v1IOzqv46+56a1eq9v0jt1QP83wkQEyB2NMDte8vuyia9jv2BC5NFZ9efXQABbpwAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmACx4xLg3P3LXlx/xGXPDvwwWXS4/uwbfyX55Jllr77/1rIf3xssuvL2YNHnu9iYtQgQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZAbOMAn7yz7Purl5f9cWWw6M/Bmsu/72Jj1rJxgI8HP8lLjw2OyRtOwDUCxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJENs4wJcXl/30xWDRz88/t+zdzwZX+noXG7OW3ZyA0WeqDw+OyQdOwL8JsF0CxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIhtHODSV8uufjtY9Os3g0W/vfzSstd3sTFrCU/A6DPVBwfH5PwuNmYtAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRA7GuDwYNmn2aTXcW7go8HDHby5/uxHA9y7v+yh9UdctjfwwODh9s8Gsx/5WwAB/hsBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAseMS4NSJZY+vP+KyWwYeGTzciUfXn/1ogKdOL3th/RGXDeY+fXjHwD3rz34sXkGTt8uFyXvqzvVnF0CAGydATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgdlwCnDq57In1R1w2mPvkwa0Dd68/+8b/yvB4u29gu3cU4B8m76kt33G7l7vZCRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgdtvAdu8owMZ+eWVgfDUBNvbhmYHx1QTYmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYt89MzC+mgC78drTA9cWCrAb56fvKQF2Q4CYADEBYgLEBIgJEBMgJkBMgJgAMQFiAsQEiAkQEyAmQEyAmAAxAWICxASICRATICZATICYADEBYgLEBIgJEBMgJkBMgJgAMd+I3SwEiAkQEyAmQEyAmAAxAWICxASICRD7G0KUkJEznJABAAAAAElFTkSuQmCC" title="" alt="" width="192" /></div>
+
+<ul>
+<li>Polygenic (quantitative trait)</li>
+<li>Polygenic (binary trait)</li>
+<li>Polygenic (counts)</li>
+</ul>
+
+<p><br/></p>
+
+<ul>
+<li>Association (quantitative trait)</li>
+<li>Linkage (quantitative trait)</li>
+</ul>
+
+<p><br/></p>
+
+<ul>
+<li><span class="emph">
+GxE (sex-especificity)</span></li>
+<li>GxE (ageing)</li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Sex-specificity for BMI (GAIT1)</h2></hgroup><article  id="sex-specificity-for-bmi-gait1">
+
+<pre class = 'prettyprint lang-r'>m0 &lt;- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin))
+
+m1 &lt;- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (0 + SEXf|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 3)))
+  
+m2 &lt;- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (0 + SEXf|ID) + (0 + SEXf|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 5)))  </pre>
+
+</article></slide><slide class=''><hgroup><h2>Sex-specificity for BMI (GAIT1)</h2></hgroup><article  id="sex-specificity-for-bmi-gait1-1">
+
+<pre class = 'prettyprint lang-r'>VarCorr(m1)</pre>
+
+<pre >##  Groups   Name        Std.Dev. Corr 
+##  ID       (Intercept) 0.089062      
+##  RID      SEXf1       0.095182      
+##           SEXf2       0.135234 0.000
+##  HHID     (Intercept) 0.052327      
+##  Residual             0.093239</pre>
+
+<pre class = 'prettyprint lang-r'>VarCorr(m2)</pre>
+
+<pre >##  Groups   Name        Std.Dev. Corr 
+##  ID       SEXf1       0.101001      
+##           SEXf2       0.105480 0.421
+##  RID      SEXf1       0.081500      
+##           SEXf2       0.123478 0.000
+##  HHID     (Intercept) 0.051211      
+##  Residual             0.108221</pre>
+
+</article></slide><slide class=''><hgroup><h2>Sex-specificity for BMI (GAIT1)</h2></hgroup><article  id="sex-specificity-for-bmi-gait1-2">
+
+<pre class = 'prettyprint lang-r'>anova(m0, m1, m2)</pre>
+
+<pre >## refitting model(s) with ML (instead of REML)</pre>
+
+<pre >## Data: phen
+## Models:
+## m0: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | HHID) + (1 | ID)
+## m1: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | ID) + (0 + SEXf | RID) + (1 | 
+## m1:     HHID)
+## m2: BMI ~ AGEsc + AGEsc2 + SEXf + (0 + SEXf | ID) + (0 + SEXf | RID) + 
+## m2:     (1 | HHID)
+##    Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(&gt;Chisq)  
+## m0  7 -359.40 -331.64 186.70  -373.40                           
+## m1 10 -362.06 -322.39 191.03  -382.06 8.6533      3    0.03427 *
+## m2 12 -362.91 -315.32 193.46  -386.91 4.8551      2    0.08825 .
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
+</article></slide><slide class=''><hgroup><h2>Sex-specificity for BMI (GAIT2)</h2></hgroup><article  id="sex-specificity-for-bmi-gait2">
+
+<pre class = 'prettyprint lang-r'>VarCorr(m1)</pre>
+
+<pre >##  Groups   Name        Std.Dev. Corr 
+##  ID       (Intercept) 0.103256      
+##  RID      SEXf1       0.089512      
+##           SEXf2       0.136570 0.000
+##  HHID     (Intercept) 0.033367      
+##  Residual             0.101783</pre>
+
+<pre class = 'prettyprint lang-r'>VarCorr(m2)</pre>
+
+<pre >##  Groups   Name        Std.Dev. Corr 
+##  ID       SEXf1       0.085383      
+##           SEXf2       0.132376 0.804
+##  RID      SEXf1       0.099653      
+##           SEXf2       0.113160 0.000
+##  HHID     (Intercept) 0.036435      
+##  Residual             0.094210</pre>
+
+</article></slide><slide class=''><hgroup><h2>Sex-specificity for BMI (GAIT2)</h2></hgroup><article  id="sex-specificity-for-bmi-gait2-1">
+
+<pre class = 'prettyprint lang-r'>anova(m0, m1, m2)</pre>
+
+<pre >## refitting model(s) with ML (instead of REML)</pre>
+
+<pre >## Data: phen2
+## Models:
+## m0: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | HHID) + (1 | ID)
+## m1: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | ID) + (0 + SEXf | RID) + (1 | 
+## m1:     HHID)
+## m2: BMI ~ AGEsc + AGEsc2 + SEXf + (0 + SEXf | ID) + (0 + SEXf | RID) + 
+## m2:     (1 | HHID)
+##    Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(&gt;Chisq)    
+## m0  7 -858.56 -824.68 436.28  -872.56                             
+## m1 10 -879.32 -830.91 449.66  -899.32 26.755      3  6.626e-06 ***
+## m2 12 -885.72 -827.63 454.86  -909.72 10.405      2   0.005504 ** 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
+</article></slide><slide class=''><hgroup><h2>Models (7/7)</h2></hgroup><article  id="models-77">
+
+<div style="float: right;">
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYAAAAGACAMAAACTGUWNAAABLFBMVEXZTTrZTjzcW0neZFPeZVTfZ1fhc2TkgHLmiHznjYHolInqn5XtrKPur6fvsqrwtq3wuLDwuLHyxL3yxb7zxb/zxsD0zMf10s3108/3qJj3qZn32NT33Nj4r6D4s6X4s6b4tKb4tKf4taf4ua343dn43tr44t/5ua35u675vrL5v7P5wbX5w7j54+D55OL6xLn6yb/65+T71s/718/72NH76+j82dP82tP829X83NX83Nb83db83df839n84Nr84Nv84dz84tz84t385N/88e/89PL95N/95uL96eX96uX96+j97Oj97On97en97er97uv+7er+7ur+7+z+8O3+8e7+8e/+8vD+9PL+9fL+9fP+9fT+9vT++vr++/r++/v/+/r/+/v//Pr//Pv////I2oIKAAAACXBIWXMAAB2HAAAdhwGP5fFlAAAFfElEQVR4nO3bWZMVRRSFUZwnRJxnxHlWbBS1EVQcWgVFGRVUVP7/fzB8K09GUKdvVLntYH3PO/ISvch6y33XFW1f+h9wswcgHIBwU4C79s33QOvUF56c75tnG6OzTzVG5xqb3ujYOn/kGwVgGoAaAAArB2AagBoAACsHYBqAGgAAKwdgGoAaAAArB2AagBoAACsHYBqAGgAAKwdgGoAaAAArB2AagBoAACsHYBqAGgAAKwdgGoAaAAArB2AagBoAACsHYBqA2s0F8PbT833ZOvX8mfmunW2M/mpszvzRGf3ZGf2yzh/5Ru36leSdjWvysBvQDsA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQwCWDcA0ADUAQ+80XvJ91Xmk92vnkd7vnad1v3VG1zqjq2v8iW/cFODNxv+Rj15rjE7d0bgmj7sBAGoAagBqAAAMAagBALDZCEANQA0AgCEANQAANhsBqAGoAQAwBKAGAMBmIwA1ADUAAIYA1AAA2GwEoAagBgDAEIAaAACbjQDUANQAABgCUAMAYLMRgBqAGgAAQwBqADYD+GRrvp2PG6NvP2yMTt+/f75njjZO+qGx2fq+M3o/C7DcDWg9U721cU1euqluAAAAAOYCAGAIQA0AgM1GAADMBQDAEIAaAACbjQAAmAsAgCEANQAANhsBADAXAABDAGoAAGw2AgBgLgAAhgDUAADYbAQAwFwAAAwBqAEAsNkIAIC5AAAYAlADsBnA19vz/XiqMTr/aWN06URjdPnBg/O91zho+1JndCIL8B/fgNYz1Vsa1+TlxkF74gYAAFADUAMAAMBsAAAMAagBADAEoAagBgAAgNkAABgCUAMAYAhADUANAAAAswEAMASgBgDAEIAagBoAAABmAwBgCEANAIAhADUANQAAAMwGAMAQgBqAAWCn8Yzt3BedB3GfNUY/dx7pXT3eGF1pPOQ7+EHjoO3PswD/xxvQeqbauCW9a+ITVANQAwBgCEANAAAAswEAMASgBqAGAMAQgBoAAABmAwBgCEANQA0AgCEANQAAAMwGAMAQgBqAGgAAQwBqAAAAmA0AgCEANQA1AACGANQAAAAwG4AB4Mih+U6+1RjtvN4YffdiY3Thuc7otkavNA46dDwLcGprvp9ONEYXthujy8cao6tHG6Mrjc3Wlf2NHsoC7NlPUGPT+04dAFACUAMAYAhADQCAcQSgBAAAgNkA1AAAGAJQAwBgHAEoAQAAYDYANQAAhgDUAAAYRwBKAAAAmA1ADQCAIQA1AADGEYASAAAAZgNQAwBgCEANAIBxBKAEYAA4cni+k+82RjtvNEanX22MLjzfGF1sbA5fvL3RwSyArj/WaNlfBPCvOt+phX9x2eP2egDCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQgHIByAcADCAQh3T6NlfxHArnvk3kbt0wDsugOLfqcA7DoA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEAxAOQDgA4QCEe+K+Ru3TAKzTo3c3+mcIYJ3a3ykA6wQgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBwAMIBCAcgHIBw3ojtlQCEAxAOQDgA4QCEAxAOQDgA4QCEAxDubxSjvaXsLTF7AAAAAElFTkSuQmCC" title="" alt="" width="192" /></p></div>
+
+<ul>
+<li>Polygenic (quantitative trait)</li>
+<li>Polygenic (binary trait)</li>
+<li>Polygenic (counts)</li>
+</ul>
+
+<p><br/></p>
+
+<ul>
+<li>Association (quantitative trait)</li>
+<li>Linkage (quantitative trait)</li>
+</ul>
+
+<p><br/></p>
+
+<ul>
+<li>GxE (sex-especificity)</li>
+<li><span class="emph">
+GxE (ageing)</span></li>
+</ul>
+
+</article></slide><slide class=''><hgroup><h2>Ageing for BMI (GAIT1)</h2></hgroup><article  id="ageing-for-bmi-gait1">
+
+<pre class = 'prettyprint lang-r'>m0 &lt;- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin))
+
+m1 &lt;- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (1 + AGEsc|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 3)))
+  
+m2 &lt;- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1 + AGEsc|ID) + (1 + AGEsc|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 5)))</pre>
+
+</article></slide><slide class=''><hgroup><h2>Ageing for BMI (GAIT1)</h2></hgroup><article  id="ageing-for-bmi-gait1-1">
+
+<pre class = 'prettyprint lang-r'>VarCorr(m1)</pre>
+
+<pre >##  Groups   Name        Std.Dev. Corr 
+##  ID       (Intercept) 0.085639      
+##  RID      (Intercept) 0.112998      
+##           AGEsc       0.037605 0.000
+##  HHID     (Intercept) 0.057153      
+##  Residual             0.078124</pre>
+
+<pre class = 'prettyprint lang-r'>VarCorr(m2)</pre>
+
+<pre >##  Groups   Name        Std.Dev. Corr  
+##  ID       (Intercept) 0.088349       
+##           AGEsc       0.057975 -0.011
+##  RID      (Intercept) 0.100757       
+##           AGEsc       0.011939 0.000 
+##  HHID     (Intercept) 0.062106       
+##  Residual             0.068442</pre>
+
+</article></slide><slide class=''><hgroup><h2>Ageing for BMI (GAIT1)</h2></hgroup><article  id="ageing-for-bmi-gait1-2">
+
+<pre class = 'prettyprint lang-r'>anova(m0, m1, m2)</pre>
+
+<pre >## refitting model(s) with ML (instead of REML)</pre>
+
+<pre >## Data: phen
+## Models:
+## m0: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | HHID) + (1 | ID)
+## m1: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | ID) + (1 + AGEsc | RID) + 
+## m1:     (1 | HHID)
+## m2: BMI ~ AGEsc + AGEsc2 + SEXf + (1 + AGEsc | ID) + (1 + AGEsc | 
+## m2:     RID) + (1 | HHID)
+##    Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(&gt;Chisq)  
+## m0  7 -359.40 -331.64 186.70  -373.40                           
+## m1 10 -354.91 -315.25 187.45  -374.91 1.5054      3    0.68102  
+## m2 12 -357.87 -310.28 190.94  -381.87 6.9658      2    0.03072 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</pre>
+
+</article></slide><slide class=''><hgroup><h2>Ageing for BMI (GAIT2)</h2></hgroup><article  id="ageing-for-bmi-gait2">
+
+<pre class = 'prettyprint lang-r'>VarCorr(m1)</pre>
+
+<pre >##  Groups   Name        Std.Dev.  Corr 
+##  ID       (Intercept) 0.1051531      
+##  RID      (Intercept) 0.1123773      
+##           AGEsc       0.0047755 0.000
+##  HHID     (Intercept) 0.0402519      
+##  Residual             0.0953040</pre>
+
+<pre class = 'prettyprint lang-r'>VarCorr(m2)</pre>
+
+<pre >##  Groups   Name        Std.Dev.  Corr 
+##  ID       (Intercept) 0.1036828      
+##           AGEsc       0.0090293 0.975
+##  RID      (Intercept) 0.1120449      
+##           AGEsc       0.0160447 0.000
+##  HHID     (Intercept) 0.0404414      
+##  Residual             0.0681332</pre>
+
+</article></slide><slide class=''><hgroup><h2>Ageing for BMI (GAIT2)</h2></hgroup><article  id="ageing-for-bmi-gait2-1">
+
+<pre class = 'prettyprint lang-r'>anova(m0, m1, m2)</pre>
+
+<pre >## refitting model(s) with ML (instead of REML)</pre>
+
+<pre >## Data: phen2
+## Models:
+## m0: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | HHID) + (1 | ID)
+## m1: BMI ~ AGEsc + AGEsc2 + SEXf + (1 | ID) + (1 + AGEsc | RID) + 
+## m1:     (1 | HHID)
+## m2: BMI ~ AGEsc + AGEsc2 + SEXf + (1 + AGEsc | ID) + (1 + AGEsc | 
+## m2:     RID) + (1 | HHID)
+##    Df     AIC     BIC logLik deviance  Chisq Chi Df Pr(&gt;Chisq)
+## m0  7 -858.56 -824.68 436.28  -872.56                         
+## m1 10 -854.52 -806.11 437.26  -874.52 1.9547      3     0.5819
+## m2 12 -850.38 -792.30 437.19  -874.38 0.0000      2     1.0000</pre>
 
 </article></slide><slide class=''><hgroup><h2>Thank you</h2></hgroup><article  id="thank-you">
 

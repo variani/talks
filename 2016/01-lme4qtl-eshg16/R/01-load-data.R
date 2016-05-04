@@ -34,7 +34,8 @@ phen <- mutate(phen,
 
 phen <- mutate(phen,
   tr1_FXII = log(FXII),
-  tr_bmi = log(bmi))
+  tr_bmi = log(bmi),
+  BMI = log(bmi))
 
 phen <- mutate(phen,
   RID = ID)
@@ -79,7 +80,8 @@ phen2 <- mutate(phen2,
     -1))))))
     
 phen2 <- mutate(phen2,
-  tr_bmi = log(bmi))
+  tr_bmi = log(bmi),
+  BMI = log(bmi))
   
 phen2 <- mutate(phen2,
   RID = ID) 
