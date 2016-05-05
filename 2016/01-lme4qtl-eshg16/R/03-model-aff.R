@@ -3,6 +3,32 @@ library(devtools)
 load_all("~/git/hemostat/lme4qtl")
 
 K <- 0.02
+
+dat <- na.omit(subset(phen, select = c("aff", "AGEsc", "SEXfnum", "ab0", "c46t", "fvl", "ID")))
+dat <- mutate(dat, offset = log(K/(1 - K)))
+
+m <- relmatGlmer(aff ~ -1 + AGEsc + SEXfnum + ab0 + c46t + fvl + (1|ID), dat, offset = offset, relmat = list(ID = dkin), family = binomial)
+#assoc <- drop1(m, test = "Chisq")
+
+lrt(update(m, . ~ . - ab0), m)
+lrt(update(m, . ~ . - c46t), m)
+lrt(update(m, . ~ . - fvl), m)
+
+# probit
+K <- 0.02
+
+dat <- na.omit(subset(phen, select = c("aff", "AGEsc", "SEXfnum", "ab0", "c46t", "fvl", "ID")))
+dat <- mutate(dat, offset = -qnorm(1 - K))
+
+m <- relmatGlmer(aff ~ -1 + AGEsc + SEXfnum + ab0 + c46t + fvl + (1|ID), dat, offset = offset, relmat = list(ID = dkin), family = binomial(probit))
+#assoc <- drop1(m, test = "Chisq")
+
+lrt(update(m, . ~ . - ab0), m)
+lrt(update(m, . ~ . - c46t), m)
+lrt(update(m, . ~ . - fvl), m)
+
+stop()
+
 #dat <- mutate(phen, offset = log(K/(1 - K)))
 
 #m <- relmatGlmer(aff ~ -1 + AGEsc + SEXfnum + ab0f2num + (1|ID), dat, offset = offset, relmat = list(ID = dkin), family = binomial)
@@ -18,13 +44,16 @@ m0 <- relmatGlmer(aff ~ AGEf3 + SEXfnum + ab0f2num + (1|ID), dat, relmat = list(
 
 stop()
 
-K <- 0.02
-dat <- mutate(phen2, offset = -qnorm(1 - K))
+K <- 0.01
+dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = -qnorm(1 - K))
 m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial(probit))
 
+assoc <- anova(update(m, . ~ . - ABOf3num), m)
+
 K <- 0.05
-dat <- mutate(phen2, offset = log(K/(1 - K)))
+dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
 m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial)
+
 
 
 stop()
