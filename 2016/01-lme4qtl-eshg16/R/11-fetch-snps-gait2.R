@@ -13,7 +13,7 @@ snps <- c("rs121909548", "rs6025", "rs1801020", "rs1799963", "rs8176719",
 RR <- c(10, 5, 5, 4, 4, 4, 3.30, 1.47, 1.35, 1.35, 1.30, 1.30, 1.29, 1.22, 1.22, 
   1.21, 1.20, 1.20, 1.19, 1.15, 1.15, 0.85, 0.78, 0.72, NA, NA)
   
-snpf <- data.frame(Marker = factor(snps, levels = snps), RR = RR)  
+snpf <- data.frame(Marker = snps, RR = RR, stringsAsFactors = FALSE)  
 
 ### query NCBI  
 ncbif <- NCBI_snp_query(snpf$Marker)
@@ -32,6 +32,21 @@ gf <- data.frame(ID = rownames(gmat), as.data.frame(gmat), stringsAsFactors = FA
 ### update `snpf`
 snpf <- within(snpf,
   GAIT2 <- laply(Marker, function(x) x %in% colnames(gf)))
+
+snpf <- within(snpf, {
+  maf.imputed <- laply(as.character(Marker), function(x) {
+    maf <- NA
+    if(x %in% colnames(gf)) {
+      maf <- 1 - 0.5 * sum(gf[, x]) / nrow(gf)
+      maf <- ifelse(maf > 0.5, 1 - maf, maf)
+    }
+    
+    return(maf)
+  })
+})
+
+snpf <- mutate(snpf,
+  mac.imputed = maf.imputed * nrow(gf))
 
 ### save
 save(snpf, gf, file = "snps.throm.gait2.RData")

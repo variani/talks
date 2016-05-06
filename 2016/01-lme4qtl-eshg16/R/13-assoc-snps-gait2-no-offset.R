@@ -50,12 +50,9 @@ dat <- mutate(dat,
   
 dat <- join(dat, gf)
 
-K <- 0.05
-dat <- mutate(dat, offset = log(K/(1 - K)))
 
 ### Pass 1: one snp
-#m0 <- relmatGlmer(VT ~ -1 + AGEsc + AGEsc2 + SEXfnum + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial)
-model0 <- relmatGlmer(VT ~ -1 + AGEf3num1 + AGEf3num2 + SEXfnum + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial)
+model0 <- relmatGlmer(Throm ~ AGEsc + AGEsc2 + SEXfnum + (1|ID), dat, relmat = list(ID = dkin2), family = binomial)
 
 models.snps1 <- dlply(snpf, "Marker", function(x) {
   cat(" * Marker", x$Marker, "\n")
@@ -76,13 +73,13 @@ models.snps1 <- dlply(snpf, "Marker", function(x) {
   }
     
   list(Marker = x$Marker, maf.imputed = x$maf.imputed, 
-    K = K, maf.thr = maf.thr, 
+    maf.thr = maf.thr, 
     GAIT2.passed = GAIT2.passed, maf.passed = maf.passed,
     model = model, anova = anova)
 }, .parallel = parallel)
 
 ### Pass 2: rs8176719 (ABO) + one snp
-model0 <- relmatGlmer(VT ~ -1 + AGEf3num1 + AGEf3num2 + SEXfnum + rs8176719 + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial)
+model0 <- relmatGlmer(Throm ~ AGEsc + AGEsc2 + SEXfnum + rs8176719 + (1|ID), dat, relmat = list(ID = dkin2), family = binomial)
 
 models.snps2 <- dlply(snpf, "Marker", function(x) {
   cat(" * Marker", x$Marker, "\n")
@@ -107,13 +104,17 @@ models.snps2 <- dlply(snpf, "Marker", function(x) {
   }
     
   list(Marker = x$Marker, maf.imputed = x$maf.imputed, 
-    K = K, maf.thr = maf.thr, 
+    maf.thr = maf.thr, 
     GAIT2.passed = GAIT2.passed, maf.passed = maf.passed, null.passed = null.passed, model.passed = model.passed,
     model = model, anova = anova)
 }, .parallel = parallel)
 
 ### Pass 3: rs8176719 (ABO) + rs2036914 (F11) + one snp
-model0 <- relmatGlmer(VT ~ -1 + AGEf3num1 + AGEf3num2 + SEXfnum + rs8176719 + rs2036914 + (1|ID), dat, offset = offset, relmat = list(ID = dkin2), family = binomial)
+model0 <- relmatGlmer(Throm ~ AGEsc + AGEsc2 + SEXfnum + rs8176719 + rs2036914 + (1|ID), dat, relmat = list(ID = dkin2), family = binomial)
+
+#m <- relmatGlmer(Throm ~ AGEsc + AGEsc2 + SEXfnum + rs8176719 + rs2036914 + rs2288904 + (1|ID), dat, relmat = list(ID = dkin2), family = binomial(probit))
+# m <- relmatGlmer(Throm ~ AGEf + SEXfnum + rs8176719 + rs2036914 + rs2288904 + (1|ID), dat, relmat = list(ID = dkin2), family = binomial) # not converged
+#m <- relmatGlmer(VT ~ AGEsc + AGEsc2 + SEXfnum + rs8176719 + rs2036914 + rs2288904 + (1|ID), dat, relmat = list(ID = dkin2), family = binomial) # not converged
 
 models.snps3 <- dlply(snpf, "Marker", function(x) {
   cat(" * Marker", x$Marker, "\n")
@@ -138,7 +139,7 @@ models.snps3 <- dlply(snpf, "Marker", function(x) {
   }
     
   list(Marker = x$Marker, maf.imputed = x$maf.imputed, 
-    K = K, maf.thr = maf.thr, 
+    maf.thr = maf.thr, 
     GAIT2.passed = GAIT2.passed, maf.passed = maf.passed, null.passed = null.passed, model.passed = model.passed,
     model = model, anova = anova)
 }, .parallel = parallel)
@@ -207,7 +208,7 @@ ord <- order(tab.snps3$pval3)
 tab.snps3 <- tab.snps3[ord, ]
 
 ### save
-save(models.snps1, tab.snps1, models.snps2, tab.snps2, models.snps3, tab.snps3, file = "models.snps.RData")
+save(models.snps1, tab.snps1, models.snps2, tab.snps2, models.snps3, tab.snps3, file = "models.snps.run2.RData")
 
 ### rs8176719 (ABO)
 #m <- update(m0, . ~ . + rs8176719)
