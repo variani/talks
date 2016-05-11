@@ -477,6 +477,48 @@ p2
 
 </div>
 
+## Models (3/7)
+
+<div style="float: right;">
+
+```{r plot_mod_counts}
+p <- ggplot(phen2, aes(PTES)) + geom_histogram(binwidth = 20, color = "white", fill = emphcol)
+
+p <- p + theme_void()
+```
+
+```{r plot_mod_counts2, dependson = -1, fig.width = 3.5, fig.height = 4}
+p
+```
+
+</div>
+
+* Polygenic (quantitative trait)
+* Polygenic (binary trait)
+* <span class="emph">Polygenic (counts)</span>
+
+<br/>
+
+* Association (quantitative trait)
+* Linkage (quantitative trait)
+
+<br/>
+
+* GxE (sex-especificity)
+* GxE (ageing)
+
+
+
+## Polygenic model of PTES
+
+```{r ptes, echo = TRUE}
+m <- relmatGlmer(PTES ~ AGEsc + AGEsc2 + SEXf + (1|ID), phen2, 
+  relmat = list(ID = dkin2), family = poisson)
+```
+
+```{r show_ptes, dependson  = -1, echo = TRUE}
+m
+```
 
 ## Models (4/7)
 
