@@ -520,6 +520,17 @@ m <- relmatGlmer(PTES ~ AGEsc + AGEsc2 + SEXf + (1|ID), phen2,
 m
 ```
 
+## Drop fixed effects
+
+```{r drop_ptes, echo = TRUE}
+m <- relmatGlmer(PTES ~ AGEsc + AGEsc2 + SEXf + (1|ID), phen2, 
+  relmat = list(ID = dkin2), family = poisson)
+```
+
+```{r drop_ptes_2, dependson  = -1, echo = TRUE}
+drop1(m, test = "Chisq")
+```
+
 ## Models (4/7)
 
 <div style="float: right;">
@@ -927,43 +938,51 @@ m2 <- relmatLmer(
   weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 5)))
 ```  
 
-## Ageing for BMI (GAIT1)
+## Examine the models' parameters
 
 ```{r abmi_gait1_2, dependson = -1, echo = TRUE}
 VarCorr(m1)
 VarCorr(m2)
 ```  
 
-## Ageing for BMI (GAIT1)
+## Test the ageing hypothesis
 
 ```{r abmi_gait1_3, dependson = -2, echo = TRUE}
 anova(m0, m1, m2)
 ```  
 
-## Ageing for BMI (GAIT2)
+## Dichotomized ageing model
 
-```{r abmi_gait2_1}
-m0 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), phen2, relmat = list(ID = dkin2))
+```{r age_dich, echo = TRUE}
+# Common polygenic model
+m0 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|HHID) + (1|ID), 
+  phen, relmat = list(ID = dkin))
 
-m1 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (1 + AGEsc|RID) + (1|HHID), phen2, 
-  relmat = list(ID = dkin2), 
-  weights = rep(1e10, nrow(phen2)), vcControl = list(rho0 = list(rid = 3)))
-  
-m2 <- relmatLmer(BMI ~ AGEsc + AGEsc2 + SEXf + (1 + AGEsc|ID) + (1 + AGEsc|RID) + (1|HHID), phen2, 
-  relmat = list(ID = dkin2), 
-  weights = rep(1e10, nrow(phen2)), vcControl = list(rho0 = list(rid = 5)))
+m1 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (1|ID) + (0 + AGEf2|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 3)))
+
+m2 <- relmatLmer(
+  BMI ~ AGEsc + AGEsc2 + SEXf + (0 + SEXf|ID) + (0 + AGEf2|RID) + (1|HHID), 
+  phen, relmat = list(ID = dkin), 
+  weights = rep(1e10, nrow(phen)), vcControl = list(rho0 = list(rid = 5)))
 ```  
 
-```{r abmi_gait1_22, dependson = -1, echo = TRUE}
+
+## Examine the models' parameters
+
+```{r age_dich_2, dependson = -1, echo = TRUE}
 VarCorr(m1)
 VarCorr(m2)
 ```  
 
-## Ageing for BMI (GAIT2)
+## Test the hypothesis
 
-```{r abmi_gait2_3, dependson = -2, echo = TRUE}
+```{r age_dich_3, dependson = -2, echo = TRUE}
 anova(m0, m1, m2)
-```   
+```  
 
 ## Thank you
 
