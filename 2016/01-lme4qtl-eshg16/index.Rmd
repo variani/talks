@@ -405,6 +405,18 @@ p1
 * GxE (ageing)
 
 
+## Thrombosis phenotype
+
+Thrombosis is a common complex disease associated with substantial morbidity and mortality.
+
+The major determinants of thrombosis include both environmental and genetic factors.
+
+* Enironmental: age & gender
+* Genetic: ABO blood group system ([wikipedia](https://en.wikipedia.org/wiki/ABO_blood_group_system))
+    * Group O is protector
+
+The contribution of genetic risk factors is estimated around 60% [@Souto2000]. 
+
 ## Polygenic model for Throm
 
 ```{r m1, echo = TRUE}
@@ -442,7 +454,7 @@ summaryCoef(m) # offset = log(K/(1 - K)) = -2.944439
 ## Probit link function
 
 ```{r probit, echo = TRUE}
-K <- 0.05
+K <- 0.02
 dat <- mutate(phen2, offset = -qnorm(1 - K))
 
 m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat, 
@@ -450,7 +462,7 @@ m <- relmatGlmer(Throm ~ -1 + AGEsc + SEXfnum + ABOf3num + (1|ID), dat,
 ```
 
 ```{r, echo = TRUE}
-summaryCoef(m)  # offset = -qnorm(1 - K) = -1.644854
+summaryCoef(m)  # offset = -qnorm(1 - K) = -2.053749
 ```
 
 See also [@Zaitlen2012]
@@ -610,6 +622,22 @@ while df $=$ 2
 m2
 ```
 
+# lme4qtl is <span class="emph">efficient</span> 
+
+## CPU time on GWAS
+
+|  Model | SOLAR (days) | lme4qtl (days) |
+|:-------|:--------|:---|
+| `APTT ~ 1 + (1|ID)` | 1.2 | 1.6 |
+| `APTT ~ AGE + SEX + (1|ID)` | 	1.6 |	1.6 |
+| `APTT ~ 1 + (1|HHID) + (1|ID)` | 	5.6 |	1.7 |
+| `APTT ~ AGE+ SEX + (1|HHID) + (1|ID)` | 	8.2  |	1.7 |
+
+
+* Server with RAM 128G, 64 CPU $\times$ 2.3G
+* SOLAR 7.6.6 (stable on March, 2015)
+* GAIT2: N = 934 individuals, M = 10M markers
+
 
 ## Models (5/7)
 
@@ -677,6 +705,22 @@ p2
 * GxE (sex-especificity)
 * GxE (ageing)
 
+## FXII phenotype
+
+[@Soria2002] showed that a locus in the F12 gene influences both 
+
+* Coagulation Factor XII (FXII) activity
+* Susceptibility to thrombosis
+
+<div class="imgblock">
+![](image/FXII.png)
+</div>
+
+
+<div style="float: left; font-size: 50%;">
+Results of (a) linkage and (b) association mappings on Chromosome 5 for Factor FXII in the GAIT1 sample. 
+The identified locus is the F12 gene. Figure source: [@Ziyatdinov2015].
+</div>
 
 ## Locus F12 and related MIBD matrix
 
