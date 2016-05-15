@@ -1,0 +1,121 @@
+---
+title: "lme4qtl: an efficient and flexible QTL mapper"
+subtitle: "Application to the GAIT2 data set"
+author: Andrey Ziyatdinov
+date: 17 May, 2016 <br/> [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ)
+bibliography: mendeley.bib
+output:
+  ioslides_presentation:
+    css: styles.css
+---
+
+
+```{r setup, echo = FALSE, message = FALSE, cache = FALSE}
+# set global chunk options
+opts_chunk$set(fig.path = 'figure-ugcd/', cache.path = 'cache-ugcd/', echo = FALSE, cache = TRUE, 
+  tidy = FALSE, 
+  fig.width = 9, fig.height = 4.5, dev = 'png',
+  warning = FALSE, message = TRUE)
+# upload images automatically? (identity/imgur_upload)
+opts_knit$set(upload.fun = identity)
+```
+
+```{r inc, cache = FALSE, message = FALSE, warning = FALSE}
+library(plyr)
+library(ggplot2)
+library(gridExtra)
+
+library(pander)
+
+#theme_set(theme_light())
+panderOptions('table.split.table', Inf)
+panderOptions('knitr.auto.asis', FALSE)
+
+library(devtools)
+load_all("~/git/ugcd/gait")
+load_all("~/git/ugcd/solarius")
+load_all("~/git/hemostat/lme4qtl")
+
+library(RLRsim)
+```
+
+```{r par_plotting}
+emphcol <- "#d94d3a" # See styles.css
+emphcol2 <- "#2a7cdf" # blue #4387fd; blue2 #3c8ef3; blue3 #2a7cdf;
+```
+
+```{r local_fun}
+lrt <- function(mod.null, mod.alt, df = 1) 
+{ 
+  lrt.stat <- function(l.null, l.alt) 2 * (-l.null + l.alt)
+  
+  if(isREML(mod.null) | isREML(mod.alt)) {
+    message("refitting model(s) with ML (instead of REML)")
+  }
+  
+  l.null <- ifelse(isREML(mod.null), logLikNum(refitML(mod.null)), logLikNum(mod.null))
+  l.alt <- ifelse(isREML(mod.alt), logLikNum(refitML(mod.alt)), logLikNum(mod.alt))
+  
+  x <- lrt.stat(l.null, l.alt)
+  pchisq(x, df = df, lower.tail = FALSE)
+}
+
+summaryCoef <- function(x, digits = max(3, getOption("digits") - 3),
+  signif.stars = getOption("show.signif.stars"), signif.legend = FALSE) 
+{ 
+  printCoefmat(summary(x)$coefficients, zap.ind = 3, digits = digits, 
+    signif.stars = signif.stars, signif.legend = signif.legend)
+}
+```
+
+```{r dat, message = FALSE, warning = FALSE}
+source("R/01-load-data.R")
+```
+
+```{r include_cite, cache = FALSE, message = FALSE, warning = FALSE}
+#library(knitcitations)
+```
+
+```{r knitcitations, cache = FALSE, message = FALSE, warning = FALSE}
+#cite_options(linked = TRUE)
+#cite_options(tooltip = TRUE)
+
+#bib <- read.bibtex("mendeley.bib")
+```
+
+## About lme4qtl
+
+<span class="emph">lme4qtl</span> $=$ an extension of the <span class="emph">lme4</span> R package
+
+<br/>
+
+<span class="emph">lme4qtl</span> $=$ <span class="emph">l</span>inear <span class="emph">m</span>ixed <span class="emph">e</span>ffects models 
+<s>for</s> <span class="emph">4</span> 
+<span class="emph">q</span>uantitative <span class="emph">t</span>rait <span class="emph">l</span>oci mapping
+
+
+## About lme4qtl user
+
+<div style="float: right; font-size: 50%;">
+![](https://avatars2.githubusercontent.com/u/371258?v=3&s=150)
+<br/>
+Source: [github.com/dmbates](https://github.com/dmbates)
+</div>
+
+1. You use mixed models for QTL mapping 
+    * Basic models <span class="emph">(efficiency)</span>
+    * Advanced models <span class="emph">(flexibility)</span>
+2. You code in R
+    * If not, just need to learn the formula interface
+3. You are a fan of the [lme4](https://github.com/lme4/lme4) R package
+    * If not, [dmbates](https://github.com/dmbates) is watching you
+
+
+
+## lme4qtl applied to GAIT2
+
+* FXIIc
+* Throm
+* BMI 
+
+## References
