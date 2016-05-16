@@ -50,13 +50,24 @@ phen <- mutate(phen,
     ifelse(AGE < 55, 0, 1))),
   AGEf3 = as.factor(ifelse(is.na(AGE), NA, 
     ifelse(AGE < 55, 0,
-    ifelse(AGE < 74, 1, 2)))))
+    ifelse(AGE < 74, 1, 2)))),
+  AGEf4 = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0,
+    ifelse(AGE < 64, 1,
+    ifelse(AGE < 74, 2, 3)))))
+)
 
 phen <- mutate(phen,
   AGEf3num0 = as.numeric(AGEf3 == 0),
   AGEf3num1 = as.numeric(AGEf3 == 1),
   AGEf3num2 = as.numeric(AGEf3 == 2))
 
+phen <- mutate(phen,
+  AGEf4num0 = as.numeric(AGEf4 == 0),
+  AGEf4num1 = as.numeric(AGEf4 == 1),
+  AGEf4num2 = as.numeric(AGEf4 == 2),
+  AGEf4num3 = as.numeric(AGEf4 == 3))
+  
 phen <- mutate(phen,
   ab0f2 = as.factor(ifelse(is.na(ab0), NA, 
     ifelse(ab0 < 0, 0, 1))),
@@ -100,6 +111,11 @@ phen2 <- within(phen2, {
   ABOf3num <- as.numeric(ABOf3) - 1
 })
 
+phen2 <- within(phen2, {
+  ABOf3A1 <- factor(laply(ABO, function(x)
+    ifelse(is.na(x), NA, length(regmatches(x, gregexpr("A1", x))[[1]]))))
+})
+
 phen2 <- mutate(phen2,
   AGEf = as.factor(ifelse(is.na(AGE), NA, 
     ifelse(AGE < 55, 0,
@@ -110,12 +126,24 @@ phen2 <- mutate(phen2,
     ifelse(AGE < 55, 0, 1))),
   AGEf3 = as.factor(ifelse(is.na(AGE), NA, 
     ifelse(AGE < 55, 0,
-    ifelse(AGE < 74, 1, 2)))))  
-
+    ifelse(AGE < 74, 1, 2)))),
+  AGEf4 = as.factor(ifelse(is.na(AGE), NA, 
+    ifelse(AGE < 55, 0,
+    ifelse(AGE < 64, 1,
+    ifelse(AGE < 74, 2, 3)))))
+)
+      
 phen2 <- mutate(phen2,
   AGEf3num0 = as.numeric(AGEf3 == 0),
   AGEf3num1 = as.numeric(AGEf3 == 1),
   AGEf3num2 = as.numeric(AGEf3 == 2))
+
+phen2 <- mutate(phen2,
+  AGEf4num0 = as.numeric(AGEf4 == 0),
+  AGEf4num1 = as.numeric(AGEf4 == 1),
+  AGEf4num2 = as.numeric(AGEf4 == 2),
+  AGEf4num3 = as.numeric(AGEf4 == 3))
+  
 
 phen2 <- mutate(phen2,
   AGEfnum0 = as.numeric(AGEf == 0),

@@ -13,6 +13,10 @@ https://github.com/rstudio/rmarkdown/blob/master/inst/rmd/ioslides/ioslides-13.5
   font-weight: bold;
 }
 
+.emph2 {
+  color: #d94d3a;
+}
+
 .imgblock img {
   display: block;
   width: 100%;

@@ -2,7 +2,7 @@
 title: "lme4qtl: an efficient and flexible QTL mapper"
 subtitle: "Application to the GAIT2 data set"
 author: Andrey Ziyatdinov
-date: 17 May, 2016 <br/> [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ)
+date: 17 May, 2016 <br/> [bit.ly/1OvML1a](http://bit.ly/1OvML1a)
 bibliography: mendeley.bib
 output:
   ioslides_presentation:
@@ -30,6 +30,7 @@ library(pander)
 #theme_set(theme_light())
 panderOptions('table.split.table', Inf)
 panderOptions('knitr.auto.asis', FALSE)
+panderOptions('table.emphasize.rownames', FALSE)
 
 library(devtools)
 load_all("~/git/ugcd/gait")
@@ -72,6 +73,10 @@ summaryCoef <- function(x, digits = max(3, getOption("digits") - 3),
 source("R/01-load-data.R")
 ```
 
+```{r gf_snpf, message = FALSE, warning = FALSE}
+load("data/snps.throm.gait2.RData")
+```
+
 ```{r include_cite, cache = FALSE, message = FALSE, warning = FALSE}
 #library(knitcitations)
 ```
@@ -85,6 +90,12 @@ source("R/01-load-data.R")
 
 ## About lme4qtl
 
+<div style="float: right; font-size: 50%;">
+![](https://avatars2.githubusercontent.com/u/371258?v=3&s=150)
+<br/>
+Source: [github.com/dmbates](https://github.com/dmbates)
+</div>
+
 <span class="emph">lme4qtl</span> $=$ an extension of the <span class="emph">lme4</span> R package
 
 <br/>
@@ -94,28 +105,263 @@ source("R/01-load-data.R")
 <span class="emph">q</span>uantitative <span class="emph">t</span>rait <span class="emph">l</span>oci mapping
 
 
-## About lme4qtl user
-
-<div style="float: right; font-size: 50%;">
-![](https://avatars2.githubusercontent.com/u/371258?v=3&s=150)
-<br/>
-Source: [github.com/dmbates](https://github.com/dmbates)
-</div>
-
-1. You use mixed models for QTL mapping 
-    * Basic models <span class="emph">(efficiency)</span>
-    * Advanced models <span class="emph">(flexibility)</span>
-2. You code in R
-    * If not, just need to learn the formula interface
-3. You are a fan of the [lme4](https://github.com/lme4/lme4) R package
-    * If not, [dmbates](https://github.com/dmbates) is watching you
-
-
+# lme4qtl applied to GAIT2
 
 ## lme4qtl applied to GAIT2
 
-* FXIIc
-* Throm
-* BMI 
+1. Risk model of Thrombosis
+2. Use case: PFA as a new risk factor
+3. Model of APTT
+
+Intereseted to know more about lme4qtl? 
+
+Please see the slides [bit.ly/1UiTZvQ](http://bit.ly/1UiTZvQ) introducing the lme4qtl R package.
+
+## Risk model of Thrombosis
+
+> * No covariates: meaning of prevalence
+> * Basic model: age & gender
+>     * How to code age?
+>     * Is gender important?
+> * Adding a genetic factor: ABO
+>     * How to encode ABO?
+> * Adding more genetic factors 
+>     * <s>In TIC we trust</s>
+
+## Use case: PFA as a new risk factor
+
+> * PFAadp & PFAedp have been established as risk factors in RETROVE
+>     * ABO is not available in RETROVE
+> * Replication study in GAIT2
+>     * ABO is available in GAIT2
+>     * Measures of PFAadp & PFAedp are comparable across two cohorts
+> * lme4qtl R packages handles the pedigrees
+>     * SOLAR hasn't heard about logistic legression
+>     * SOLAR has a special way to introduce the disease prevalence
+
+
+## Model of APTT
+
+* Sex-specificity
+* Ageing
+* Combined linkage and association
+
+# Risk model of Thrombosis
+
+## Thrombosis disease
+
+Thrombosis is a common complex disease associated with substantial morbidity and mortality.
+
+The major determinants of thrombosis include both environmental and genetic factors.
+
+* Enironmental: age & gender
+* Genetic: ABO blood group system ([wikipedia](https://en.wikipedia.org/wiki/ABO_blood_group_system))
+    * Group O is protector
+
+The contribution of genetic risk factors is estimated around 60% [@Souto2000]. 
+
+## No covariates: meaning of prevalence
+
+```{r no_cov, echo = T}
+m <- relmatGlmer(Throm ~ (1|ID), phen2, relmat = list(ID = dkin2), 
+  family = binomial)
+```
+
+```{r no_cov_par, dependson = -1}
+b <- as.numeric(fixef(m))
+prev1 <- prop.table(table(phen2$Throm))[["1"]]
+prev2 <- 1 / (1 + exp(-b))
+```
+
+* Model intercept: $\beta_0 =$ `r round(b, 2)`
+* Formula for the prevalence (logistic regression): $\frac{1}{1 + e^{-\beta_0}}$
+<br/>
+
+```{r tab_prev, dependson = -1, echo = FALSE, results = 'asis'}
+# -}
+df <- data.frame(Model = c("Proportion", "Mixed Model", "Reported in Literature"),
+  Prevalence = c(paste0(round(100 * c(prev1, prev2), 2), "%"), "0.2 - 2%"))
+  
+pander(df, style = 'rmarkdown')
+```
+
+## Modeling prevalence?
+
+```{r modeling_prev_plots}
+source("R/figure/01-prevalence-gait1-gait2.R")
+```
+
+```{r modeling_prev, echo = TRUE}
+K <- 0.02
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+m <- relmatGlmer(Throm ~ -1 + AGEsc + I(AGEsc^2) + SEXfnum + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+```
+
+<div class="columns-2">
+
+GAIT2 (118 _vs._ 817)
+
+GAIT1 (53 _vs._ 340)
+
+</div>
+
+<div class="columns-2">
+
+```{r p1, fig.width = 4, fig.height = 3}
+p1
+```
+
+```{r p2, fig.width = 4, fig.height = 3}
+p2
+```
+
+</div>
+
+## Effects of age & gender
+
+```{r age_gender_effects, echo = TRUE}
+K <- 0.02
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+m <- relmatGlmer(Throm ~ -1 + AGEsc + I(AGEsc^2) + SEXfnum + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+stats <- drop1(m, test = "Chisq")
+```
+
+```{r tab_age_gender_effects, dependson = -1, echo = FALSE, results = 'asis'}
+df <- as.data.frame(stats)
+df <- df[-1, 4, drop = FALSE]
+colnames(df) <- c("P-value")
+pander(df, style = 'rmarkdown', digits = 3) 
+```
+
+## Non-linear age effect
+
+```{r tab_AGEf}
+tab <- ddply(phen2, "AGEf", summarize, 
+  Range = paste("[", 
+    paste(round(range(AGE, na.rm = TRUE), 1), collapse = " - "), 
+    "]", collapse = ""), 
+  N = sum(!is.na(AGE)))
+```
+
+```{r, dependson = -1, results = 'asis'}
+tab <- tab[1:5, ]
+
+colnames(tab) <- c("Factor level of AGE", "Range of AGE", "Number of ind.")
+rownames(tab) <- c("< 55", "55 - 64", "65 - 74", "75 - 84", "> 85")
+pander(tab, style = 'rmarkdown')
+```
+
+## Non-linear age effect
+
+```{r age_effects, echo = TRUE}
+K <- 0.05
+dat <- mutate(phen2, offset = log(K/(1 - K)))
+m <- relmatGlmer(Throm ~ -1 + AGEfnum1 + AGEfnum2 + AGEfnum3 + AGEfnum4 + SEXfnum + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+stats <- drop1(m, test = "Chisq")
+```
+
+```{r orf}
+orf <- exp(cbind(fixef(m)[1:4], 
+  confint(m, parm = names(fixef(m)[1:4]), method = "Wald", level = 0.9)))
+orf <- data.frame(rownames(orf), orf, c(2.25, 4.09, 5.37, 12.60))
+
+names(orf) <- c("AGEf", "OR", "CIlow", "CIhigh", "ORtic")  
+```
+
+```{r tab_age_effects, dependson = -1, echo = FALSE, results = 'asis'}
+df <- as.data.frame(stats)
+df <- df[2:5, 4, drop = FALSE]
+
+df <- cbind(orf[, 2:4], df)
+rownames(df) <- c("55 - 64", "65 - 74", "75 - 84", "> 85")
+colnames(df) <- c("Odds", "CI 5%", "CI 95%", "P-value")
+pander(df, style = 'rmarkdown', digits = 3) 
+```
+
+## ORs + 90% CI _vs._ <span class="emph2">ORs in TiC</span>
+
+```{r plot_orf, fig.width = 8}
+labs <- c("55 - 64", "65 - 74", "75 - 84", "> 85")
+p <- ggplot(orf, aes(AGEf, OR)) + geom_point(size = 3) + geom_errorbar(aes(ymin = CIlow, ymax = CIhigh), width = 0.1) + geom_point(aes(AGEf, ORtic), size = 3, color = emphcol)
+
+p <- p + scale_x_discrete(labels = labs) + labs(x = "", y = "")
+p <- p + theme_linedraw(base_size = 20)
+
+
+p
+```
+
+## Encoding ABO: allele O {.smaller}
+
+```{r abo_stat}
+sf <- ddply(phen2, "ABO", summarize, 
+  Code_0 = sum(ABOf3 == 0), 
+  Code_1 = sum(ABOf3 == 1), 
+  Code_2 = sum(ABOf3 == 2))
+
+sf <- sf[with(sf, order(Code_0, Code_1, Code_2)), ]  
+```
+
+```{r tab_abo_stat, dependson = -1, echo = FALSE, results = 'asis'}
+rownames(sf) <- NULL
+pander(sf, style = 'rmarkdown') 
+```
+
+## Encoding ABO: allele A1 {.smaller}
+
+```{r abo_stat_A1}
+sf <- ddply(phen2, "ABO", summarize, 
+  Code_0 = sum(ABOf3A1 == 0), 
+  Code_1 = sum(ABOf3A1 == 1), 
+  Code_2 = sum(ABOf3A1 == 2))
+
+sf <- sf[with(sf, order(Code_0, Code_1, Code_2)), ]  
+```
+
+```{r tab_abo_stat_A1, dependson = -1, echo = FALSE, results = 'asis'}
+rownames(sf) <- NULL
+pander(sf, style = 'rmarkdown') 
+```
+
+## Adding ABO genetic factor  
+
+```{r model_abo, echo = T}
+K <- 0.05
+dat <- mutate(subset(phen2, !is.na(ABOf3num)), offset = log(K/(1 - K)))
+
+m <- relmatGlmer(Throm ~ -1 + AGEsc + AGEsc2 + SEXfnum + ABOf3num + (1|ID), dat, 
+  offset = offset, relmat = list(ID = dkin2), family = binomial)
+```
+
+```{r model_abo_tab, dependson = -1}
+tab <- summary(m)$coefficients
+stats <- drop1(m, test = "Chisq")
+```
+
+```{r tab_abo, dependson = -1, echo = FALSE, results = 'asis'}
+tab <- cbind(tab[, 1:2], as.data.frame(stats)[-1, 4, drop = FALSE])
+
+colnames(tab)[3] <- "P-value"
+pander(tab, style = 'rmarkdown', digits = 3) 
+```
+
+## Adding more genetic factors (10/26) {.smaller}
+
+```{r tab_snpf}
+tab <- subset(snpf, select = c("Marker", "RR", "Gene", "MAF", "GAIT2"))
+```
+
+```{r tab_snpf1, echo = FALSE, results = 'asis'}
+pander(tab[1:10, 1:4], style = 'rmarkdown', digits = 3) 
+```
+
+## Adding more genetic factors (5/26) {.smaller}
+
+```{r tab_snpf2, echo = FALSE, results = 'asis'}
+pander(tail(tab, 5), style = 'rmarkdown', digits = 3) 
+```
 
 ## References
