@@ -74,7 +74,7 @@ source("R/01-load-data.R")
 ```
 
 ```{r gf_snpf, message = FALSE, warning = FALSE}
-load("data/snps.throm.gait2.RData")
+load("data/snps.throm.gait2.RData") 
 ```
 
 ```{r include_cite, cache = FALSE, message = FALSE, warning = FALSE}
@@ -188,7 +188,9 @@ pander(df, style = 'rmarkdown')
 ## Modeling prevalence?
 
 ```{r modeling_prev_plots}
-source("R/figure/01-prevalence-gait1-gait2.R")
+#source("R/figure/01-prevalence-gait1-gait2.R")
+p1 <- qplot(phen2$PTES)
+p2 <- p1
 ```
 
 ```{r modeling_prev, echo = TRUE}
@@ -235,6 +237,8 @@ colnames(df) <- c("P-value")
 pander(df, style = 'rmarkdown', digits = 3) 
 ```
 
+## AGE^2 is not significant?
+
 ## Non-linear age effect
 
 ```{r tab_AGEf}
@@ -252,6 +256,7 @@ colnames(tab) <- c("Factor level of AGE", "Range of AGE", "Number of ind.")
 rownames(tab) <- c("< 55", "55 - 64", "65 - 74", "75 - 84", "> 85")
 pander(tab, style = 'rmarkdown')
 ```
+
 
 ## Non-linear age effect
 
@@ -293,6 +298,8 @@ p <- p + theme_linedraw(base_size = 20)
 
 p
 ```
+
+Is that publishable? Ask Sr. Tripodi about his article in Blood.
 
 ## Encoding ABO: allele O {.smaller}
 
@@ -348,7 +355,27 @@ colnames(tab)[3] <- "P-value"
 pander(tab, style = 'rmarkdown', digits = 3) 
 ```
 
-## Adding more genetic factors (10/26) {.smaller}
+## Adding more genetic factors
+
+Two perpectives
+
+1. GWAS
+2. Risk models (logistic regression)
+
+## The most modern GWAS
+
+GWAS of self-reported events in 6,135 individuals and 252,827
+controls identifies 8 thrombosis-related loci [@Hinds2016]:
+
+ * F5, FGA-FGG, F11, F2, PROCR, and ABO
+ * Recently discovered locus near SLC44A2
+
+<div class="imgblock">
+![](image/gwas-throm-23andme.png)
+</div>
+
+
+## Known SNPs & Relative Risks (10/26) {.smaller}
 
 ```{r tab_snpf}
 tab <- subset(snpf, select = c("Marker", "RR", "Gene", "MAF", "GAIT2"))
@@ -358,10 +385,97 @@ tab <- subset(snpf, select = c("Marker", "RR", "Gene", "MAF", "GAIT2"))
 pander(tab[1:10, 1:4], style = 'rmarkdown', digits = 3) 
 ```
 
-## Adding more genetic factors (5/26) {.smaller}
+## Protocol
 
-```{r tab_snpf2, echo = FALSE, results = 'asis'}
-pander(tail(tab, 5), style = 'rmarkdown', digits = 3) 
+Data preparation
+
+* Remove SNPs not presented in GAIT2 
+* Remove SNPs with MAF < 5%
+
+<br/>
+
+Selection of SNPs
+
+1. The null model: age & gender
+2. Add one SNP at a time
+3. Select the most significant one (if any)
+4. Go to step 2
+
+## SNPs out of the analysis
+
+```{r snpf_out, echo = FALSE, results = 'asis'}
+tab <- subset(snpf, maf.imputed < 0.05 | !GAIT2)
+tab <- subset(tab, select = c("Marker", "RR", "Gene", "MAF", "maf.imputed", "GAIT2"))
+
+pander(tab, style = 'rmarkdown', digits = 3) 
 ```
+
+## Final multi-marker model
+
+```{r multi_snp, echo = TRUE, eval = FALSE}
+m <- relmatGlmer(Throm ~ AGEsc + AGEsc2 + SEXfnum + rs8176719 + rs2036914 + rs2288904 + (1|ID), dat, 
+  relmat = list(ID = dkin2), family = binomial)
+```
+
+<br/>
+
+```{r multi_snp_tab}
+load("results/models.snps.run2.RData")
+m <- models.snps3$rs2288$model
+```
+
+```{r multi_snp_tab_2, results = 'asis'}
+orf <- as.data.frame(exp(cbind(fixef(m)[5:7], 
+  confint(m, parm = names(fixef(m))[5:7], method = "Wald", level = 0.9)))^(-1))
+
+colnames(orf) <- c("OR", "CIhigh", "CIlow")  
+
+orf <- data.frame(Marker = rownames(orf), OR = orf$OR,
+  CIlow = orf$CIlow, CIhigh = orf$CIhigh)
+
+pvals <- summary(m)$coefficients[5:7, 4]
+pf <- data.frame(Marker = names(pvals), pval = pvals)
+
+df <- join(orf, pf, by = "Marker")
+
+df <- join(df, subset(snpf, select = c("Marker", "Gene", "RR")), by = "Marker")
+
+rownames(df) <- NULL
+colnames(df)[1:5] <- c("Marker", "Odds", "CI 5%", "CI 95%", "P-value")
+pander(df, style = 'rmarkdown', digits = 3) 
+```
+
+## GAIT2 is comparable to 23andme? {.smaller}
+
+* In both cohors: FGA-FGG, F11, PROCR, SLC44A2, and ABO (O-related SNP)
+* Excluded in GAIT2: F5, F2, and ABO (A1-related SNP MAF 0.04)
+* Other risk markers:
+    * F12 SNP affects on FXIIc or Throm?
+    * SERPINC1/SERPINA10/Cambridge are rare
+
+<div class="imgblock">
+![](image/gwas-throm-23andme.png)
+</div>
+
+## ABO SNPs
+
+From the literature review of risky SNPs:
+
+|  Allele | SNP |
+|:-------|:------|
+| O | rs8176719 |
+| A1 | rs8176750 |
+
+<br/>
+
+[@Van2015] :
+
+> Blood group antigen phenotypes (O and non-O) were reconstructed
+> using genotype data of rs687289:C4T, which is a marker for the O allele. [26]
+
+## ABO in RETROVE?
+
+Use rs687289:C4T to define blood antigen phenotypes (O and non-O)?
+
 
 ## References
