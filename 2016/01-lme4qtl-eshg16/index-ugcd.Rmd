@@ -188,15 +188,13 @@ pander(df, style = 'rmarkdown')
 ## Modeling prevalence?
 
 ```{r modeling_prev_plots}
-#source("R/figure/01-prevalence-gait1-gait2.R")
-p1 <- qplot(phen2$PTES)
-p2 <- p1
+source("R/figure/01-prevalence-gait1-gait2.R")
 ```
 
 ```{r modeling_prev, echo = TRUE}
 K <- 0.02
 dat <- mutate(phen2, offset = log(K/(1 - K)))
-m <- relmatGlmer(Throm ~ -1 + AGEsc + I(AGEsc^2) + SEXfnum + (1|ID), dat, 
+m <- relmatGlmer(Throm ~ -1 + AGEsc + (1|ID), dat, 
   offset = offset, relmat = list(ID = dkin2), family = binomial)
 ```
 
@@ -238,6 +236,26 @@ pander(df, style = 'rmarkdown', digits = 3)
 ```
 
 ## AGE^2 is not significant?
+
+<div style="float: right;">
+
+```{r logistic, fig.width = 2, fig.height = 3}
+p1
+```
+
+</div>
+
+
+Does that mean there is no non-linear trend?
+
+* Could be true for the linear regression   
+    * model: `APTT ~ AGE + AGE^2`
+* Not the case for the logistic regression 
+    * model: `Throm ~ AGE + AGE^2`
+
+<br/>
+
+See also [@Vazquez2016]
 
 ## Non-linear age effect
 
@@ -477,5 +495,107 @@ From the literature review of risky SNPs:
 
 Use rs687289:C4T to define blood antigen phenotypes (O and non-O)?
 
+
+# Use case | PFA as a new risk factor: discovered in RETROVE
+
+```{r pfa, message = FALSE, warning = FALSE}
+source("R/17-throm-risk-model-pfa.R")
+```
+
+## Results in RETROVE
+
+Shortened times of both PFAadp & PFAepin (10% quantile)
+have been found to be risk factors
+
+* Base model used for comparison included: age & gender
+* ABO factor was omitted (data not measured in RETROVE)
+
+## GWAS of PFA phenotypes in GAIT2
+
+<div class="columns-2">
+
+<div class="imgblock">
+![](image/gwas-pfaadp.png)
+</div>
+
+<div class="imgblock">
+![](image/gwas-pfaapin.png)
+</div>
+
+</div>
+
+## Protocol in GAIT2
+
+* Define quantile 10% based on controls in GAIT2
+* Use rs8176719 (934) instead of ABO genotype (913)
+* Use lme4qtl to take into account related individuals
+
+## Results in GAIT2
+
+```{r local_f}
+mod2odds <- function(m) 
+{
+  vals <- tail(exp(cbind(fixef(m), confint(m, method = "Wald", parm = names(fixef(m))))), 1)
+  vals <- round(vals, 2)
+  
+  str <- paste0(vals[1], " [", vals[2], "; ", vals[3], "]")
+  
+  return(str)
+}
+
+mod2pval <- function(m0, m) 
+{
+  as.data.frame(anova(m0, m))[2, 8]
+}
+```
+
+```{r pfa_tab, results = 'asis'}
+df <- data.frame(Model = c("Throm ~ AGE + AGE^2 + SEX + PFAadp_q10", "Throm ~ AGE + AGE^2 + SEX + rs8176719 + PFAadp_q10"),
+  Odds = c(mod2odds(m1), mod2odds(mod1)), Pvalue = c(mod2pval(m10, m1), mod2pval(mod10, mod1)))
+
+rownames(df) <- NULL
+pander(df, style = 'rmarkdown', digits = 3) 
+```
+
+<br/>
+
+```{r pfa_tab2, results = 'asis'}
+df <- data.frame(Model = c("Throm ~ AGE + AGE^2 + SEX + PFAepin_q10", "Throm ~ AGE + AGE^2 + SEX + rs8176719 + PFAepin_q10"),
+  Odds = c(mod2odds(m2), mod2odds(mod2)), Pvalue = c(mod2pval(m20, m2), mod2pval(mod20, mod2)))
+
+rownames(df) <- NULL
+pander(df, style = 'rmarkdown', digits = 3) 
+```
+
+## Summary on PFA in GAIT2
+
+We can not conclude the interplay effect between PFA & AB0.
+
+* PFA shows no significant effect in any model.
+
+<br/>
+
+Can be GAIT2 used to replicate results in RETROVE?
+
+* Most GAIT2 affected have multiple thrombotic events
+* Relatedness can be corrected by lme4qtl
+    * GAIT2 is biased due to family history (risk factor)
+    * MARTHA is biased due to FV/PT factors
+
+# Conclusions
+
+## What next?
+
+> * Re-run GWAS on diseases
+>     * Take into account the prevalence
+>     * Take into account known markers [@Zaitlen2012]
+> * Run ageing & sex-specificity models
+>     * Use GAW sample (GAIT1 showed no results)
+> * Run risk model of Thrombosis with 10M markers
+>     * regularized mixed models (todo lme4qtl)
+> * Run multi-level model for CVI
+>     * ordered logistic regerssion (todo lme4qtl)    
+
+# Thank you
 
 ## References
