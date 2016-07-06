@@ -5,4 +5,4 @@
 
 Articles
 
-* https://elifesciences.org/content/3/e01381
+* https://elifesciences.org/content/3/e01381 (variance explained by QTLs)
