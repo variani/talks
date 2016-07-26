@@ -12,7 +12,7 @@ emphcol <- "#d94d3a" # See styles.css
 emphcol2 <- "#2a7cdf" # blue #4387fd; blue2 #3c8ef3; blue3 #2a7cdf;
 
 ### data
-#source("R/01-load-data.R")
+source("R/01-load-data.R")
 
 #------------------------------
 # Figure 1: solarPolygenic
@@ -41,6 +41,8 @@ p1 <- p1 + labs(title = "solarPolygenic")
 
 p1 <- p1 + theme_void()
 
+p10 <- p1
+
 #------------------------------
 # Figure 2: solarMultipoint
 #------------------------------
@@ -49,6 +51,23 @@ ids <- c("01101", "01102",
   "01202", "01203", "01205", "01208", "01210",
   "01204", "01209", "01211")
 
+# Kinship
+ind <- rownames(dkin) %in% ids
+mat <- dkin[ind, ind]
+
+pf <- melt(mat) # Var1 Var2 value
+pf <- mutate(pf,
+  Var1 = factor(Var1, levels = as.numeric(ids)),  
+  Var2 = factor(Var2, levels = rev(as.numeric(ids))))
+  
+p1 <- ggplot(pf, aes(Var1, Var2)) + geom_tile(aes(fill = value), color = "white") + 
+  scale_fill_gradient(low = "white", high = emphcol) + guides(fill = "none")
+
+p1 <- p1 + labs(title = "solarPolygenic")
+
+p1 <- p1 + theme_void() 
+
+# IBD
 f <- system.file("extdata/gait1/mibd.5.200.gz", package = "gait")
   
 mf <- read_mibd_csv_gz(f)
