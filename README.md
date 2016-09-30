@@ -17,4 +17,5 @@
 
 ### 2014
 
-* _Linear Mixed Models in QTL analysis_, The UGCD seminars, March 5, 2014 [[html](http://variani.github.io/talks/2014/01-mixed-models-qtl/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2014/01-mixed-models-qtl/mixed-models-qtl.pdf)], [[source](https://github.com/variani/talks/tree/gh-pages/2014/01-mixed-models-qtl)]
+2. _Interpretation of salamboR models_, The UGCD seminars, May 23, 2014 [[html](http://variani.github.io/talks/2014/02-interpret-salamboR-results/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2014/02-interpret-salamboR-results/interpret-salamboR-results.pdf)], [[source](https://github.com/variani/talks/tree/gh-pages/2014/02-interpret-salamboR-results)]
+1. _Linear Mixed Models in QTL analysis_, The UGCD seminars, March 5, 2014 [[html](http://variani.github.io/talks/2014/01-mixed-models-qtl/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2014/01-mixed-models-qtl/mixed-models-qtl.pdf)], [[source](https://github.com/variani/talks/tree/gh-pages/2014/01-mixed-models-qtl)]
