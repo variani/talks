@@ -17,4 +17,4 @@
 
 ### 2014
 
-* _Linear Mixed Models in QTL analysis_, The UGCD seminars, March 5, 2014 [[html](http://variani.github.io/talks/2014/01-mixed-models-qtl/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2014/01-mixed-models-qtl/mixed-models-qtl.pdf)]
+* _Linear Mixed Models in QTL analysis_, The UGCD seminars, March 5, 2014 [[html](http://variani.github.io/talks/2014/01-mixed-models-qtl/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2014/01-mixed-models-qtl/mixed-models-qtl.pdf)], [[source](https://github.com/variani/talks/tree/gh-pages/2014/01-mixed-models-qtl)]
