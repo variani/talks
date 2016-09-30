@@ -22,6 +22,6 @@
 
 ### 2013
 
-1. _Salambo Bioinformatics Platform. Part 2_, The UGCD seminars, November 2013 [[html](variani.github.io/talks/2013/01-salamboR-part2/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2013/01-salamboR-part2/salamboR-part2.pdf)], [[source](https://github.com/variani/talks/tree/gh-pages/2013/01-salamboR-part2)]
+1. _Salambo Bioinformatics Platform. Part 2_, The UGCD seminars, November 2013 [[html](http://variani.github.io/talks/2013/01-salamboR-part2/)], [[pdf](https://github.com/variani/talks/raw/gh-pages/2013/01-salamboR-part2/salamboR-part2.pdf)], [[source](https://github.com/variani/talks/tree/gh-pages/2013/01-salamboR-part2)]
 
 
