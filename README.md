@@ -1,6 +1,6 @@
 ## Variani's talks
 
-[[source*](#)] means the source files are stroed in a private repository.
+[[source*](#)] means the source files are stored in a private repository.
 
 
 ### 2016 
