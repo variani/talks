@@ -5,7 +5,7 @@
 
 ### 2016 
 
-3. _GWAS is dead. Results from the GAIT2 projects._, The joint SantPau-UNIGE meeting, Geneva, Switzerland, July 1, 2016 [[html](http://ugcd.github.io/Public/GAIT2/planning/02-2016/talk-gait2-gwas-2016.html)], [[source*](https://github.com/ugcd/GAIT2/tree/master/planning/02-2016/talk-gait2-gwas-2016)]
+3. _GWAS is dead. Results from the GAIT2 projects._, The joint meeting between Sant Pau & UNIGE, Geneva, Switzerland, July 1, 2016 [[html](http://ugcd.github.io/Public/GAIT2/planning/02-2016/talk-gait2-gwas-2016.html)], [[source*](https://github.com/ugcd/GAIT2/tree/master/planning/02-2016/talk-gait2-gwas-2016)]
 2. _lme4qtl: an efficient and flexible QTL mapper_, The ESHG 2016 Conference, Barcelona, Spain, May, 2016 [[html](http://variani.github.io/talks/2016/01-lme4qtl-eshg16/)], [[source](https://github.com/variani/talks/tree/gh-pages/2016/01-lme4qtl-eshg16)]
    * poster [[pdf 2.8M](https://github.com/variani/talks/raw/gh-pages/2016/01-lme4qtl-eshg16/poster/5262_ziyatdinov.PDF)], [[source*](https://github.com/ugcd/Papers/tree/master/18-lme4qtl-tool/ESHG-2016)]
 1. _lme4qtl: an efficient and flexible QTL mapper. Application to the GAIT2 data set_, UGCD seminars, May 17, 2016 [[html](http://variani.github.io/talks/2016/01-lme4qtl-eshg16/index-ugcd.html)], [[source](https://github.com/variani/talks/tree/gh-pages/2016/01-lme4qtl-eshg16)]
