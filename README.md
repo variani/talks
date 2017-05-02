@@ -2,6 +2,9 @@
 
 [[source^](#)] means that the source files are stored in a private repository.
 
+### 2017
+
+5. _Testing for GxE interaction in structured populations_, PGSG Seminars, May 5, 2017 [[html](http://variani.github.io/talks/2017/01-gxe-related/01-gxe-related.html)], [[source^](https://github.com/hemostat/Papers/tree/master/talks/01-gxe-related)]
 
 ### 2016 
 
